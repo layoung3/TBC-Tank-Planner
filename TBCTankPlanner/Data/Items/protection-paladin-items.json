@@ -1,0 +1,59 @@
+[
+  {
+    "id": 23519,
+    "name": "Felsteel Helm",
+    "slot": "Head",
+    "allowedClasses": [ "ProtectionPaladin", "ProtectionWarrior" ],
+    "phase": 0,
+    "source": "Blacksmithing",
+    "quality": "Rare",
+    "stats": {
+      "stamina": 33,
+      "defenseRating": 27
+    },
+    "sockets": [ "Meta", "Blue" ],
+    "socketBonus": {
+      "stamina": 4
+    },
+    "isCustom": false
+  },
+  {
+    "id": 32083,
+    "name": "Faceguard of Determination",
+    "slot": "Head",
+    "allowedClasses": [ "ProtectionPaladin", "ProtectionWarrior" ],
+    "phase": 0,
+    "source": "Badge Vendor",
+    "quality": "Epic",
+    "stats": {
+      "stamina": 36,
+      "defenseRating": 32,
+      "dodgeRating": 24
+    },
+    "sockets": [ "Meta", "Blue" ],
+    "socketBonus": {
+      "stamina": 4
+    },
+    "isCustom": false
+  },
+  {
+    "id": 29061,
+    "name": "Justicar Faceguard",
+    "slot": "Head",
+    "allowedClasses": [ "ProtectionPaladin" ],
+    "phase": 1,
+    "source": "Karazhan / Tier 4 Token",
+    "quality": "Epic",
+    "stats": {
+      "stamina": 48,
+      "intellect": 33,
+      "defenseRating": 21,
+      "spellPower": 25
+    },
+    "sockets": [ "Meta", "Yellow" ],
+    "socketBonus": {
+      "blockValue": 4
+    },
+    "isCustom": false
+  }
+]
