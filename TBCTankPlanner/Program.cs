@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using TbcTankPlanner.Api.Services;
+using TbcTankPlanner.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +12,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSingleton<ItemDataService>();
+builder.Services.AddSingleton<CalculationService>();
 
 builder.Services.AddCors(options =>
 {

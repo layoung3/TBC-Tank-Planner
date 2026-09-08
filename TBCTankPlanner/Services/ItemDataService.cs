@@ -1,9 +1,8 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using TbcTankPlanner.Api.Domain.Items;
 using TbcTankPlanner.Domain.Items;
 
-namespace TbcTankPlanner.Api.Services;
+namespace TbcTankPlanner.Services;
 
 public class ItemDataService
 {

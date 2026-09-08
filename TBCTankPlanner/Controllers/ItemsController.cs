@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TbcTankPlanner.Api.Domain.Items;
-using TbcTankPlanner.Api.Services;
+using TbcTankPlanner.Services;
 using TbcTankPlanner.Domain.Items;
 
-namespace TbcTankPlanner.Api.Controllers;
+namespace TbcTankPlanner.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

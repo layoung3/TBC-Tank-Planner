@@ -1,7 +1,7 @@
 ﻿using TbcTankPlanner.Domain.Stats;
 using TbcTankPlanner.Domain.Items;
 
-namespace TbcTankPlanner.Api.Domain.Items;
+namespace TbcTankPlanner.Domain.Items;
 
 public class TbcItem
 {
