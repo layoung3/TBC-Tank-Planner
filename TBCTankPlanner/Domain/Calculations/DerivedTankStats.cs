@@ -19,6 +19,9 @@ public class DerivedTankStats
     public decimal ParryPercent { get; set; }
     public decimal BlockPercent { get; set; }
 
+    public bool IsHolyShieldIncluded { get; set; }
+    public decimal HolyShieldBlockChancePercent { get; set; }
+
     public decimal AvoidanceWithBlockPercent { get; set; }
     public decimal CrushAvoidanceTargetPercent { get; set; }
     public decimal CrushAvoidanceNeededPercent { get; set; }

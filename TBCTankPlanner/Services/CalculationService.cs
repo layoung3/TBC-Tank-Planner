@@ -80,7 +80,10 @@ public class CalculationService
         AddStats(finalStats, baseStats.Stats);
         AddStats(finalStats, gearStatsResponse.GearStats);
 
-        var derivedTankStats = CalculateDerivedTankStats(finalStats);
+        var derivedTankStats = CalculateDerivedTankStats(
+            finalStats,
+            request.IncludeHolyShield
+        );
 
         var response = new FinalCharacterStatsResponse
         {
@@ -173,8 +176,9 @@ public class CalculationService
         };
     }
 
-    private static DerivedTankStats CalculateDerivedTankStats(StatBlock finalStats)
-    {
+    private static DerivedTankStats CalculateDerivedTankStats(
+    StatBlock finalStats, bool includeHolyShield
+    ){
         const decimal baseDefenseSkill = 350m;
         const decimal defenseRatingPerSkill = 2.3654m;
 
@@ -186,6 +190,7 @@ public class CalculationService
         const decimal dodgeRatingPerPercent = 18.9231m;
         const decimal parryRatingPerPercent = 31.536m;
         const decimal blockRatingPerPercent = 7.8846m;
+        const decimal holyShieldBlockChance = 30.0m;
 
         // Starter baselines. These will be refined later with talents, race/class base values,
         // buffs, Holy Shield, Redoubt, and gear-specific effects.
@@ -232,6 +237,11 @@ public class CalculationService
             defenseAvoidanceBonusPercent +
             finalStats.BlockRating / blockRatingPerPercent;
 
+        if (includeHolyShield)
+        {
+            blockPercent += holyShieldBlockChance;
+        }
+
         var avoidanceWithBlock =
             missPercent +
             dodgePercent +
@@ -257,6 +267,9 @@ public class CalculationService
             DodgePercent = RoundPercent(dodgePercent),
             ParryPercent = RoundPercent(parryPercent),
             BlockPercent = RoundPercent(blockPercent),
+
+            IsHolyShieldIncluded = includeHolyShield,
+            HolyShieldBlockChancePercent = includeHolyShield ? holyShieldBlockChance : 0m,
 
             AvoidanceWithBlockPercent = RoundPercent(avoidanceWithBlock),
             CrushAvoidanceTargetPercent = crushAvoidanceTarget,
