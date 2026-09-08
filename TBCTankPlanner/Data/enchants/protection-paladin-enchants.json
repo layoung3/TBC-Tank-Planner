@@ -1,0 +1,71 @@
+[
+  {
+    "id": 300001,
+    "name": "Glyph of the Defender",
+    "allowedSlots": [ "Head" ],
+    "phase": 0,
+    "source": "Keepers of Time - Revered",
+    "stats": {
+      "defenseRating": 16,
+      "dodgeRating": 17
+    },
+    "isCustom": false
+  },
+  {
+    "id": 300002,
+    "name": "Greater Inscription of Warding",
+    "allowedSlots": [ "Shoulders" ],
+    "phase": 1,
+    "source": "Aldor - Exalted",
+    "stats": {
+      "dodgeRating": 15,
+      "defenseRating": 10
+    },
+    "isCustom": false
+  },
+  {
+    "id": 300003,
+    "name": "Greater Inscription of the Knight",
+    "allowedSlots": [ "Shoulders" ],
+    "phase": 1,
+    "source": "Scryers - Exalted",
+    "stats": {
+      "defenseRating": 15,
+      "dodgeRating": 10
+    },
+    "isCustom": false
+  },
+  {
+    "id": 300004,
+    "name": "Enchant Bracer - Major Stamina",
+    "allowedSlots": [ "Wrist" ],
+    "phase": 0,
+    "source": "Enchanting",
+    "stats": {
+      "stamina": 12
+    },
+    "isCustom": false
+  },
+  {
+    "id": 300005,
+    "name": "Enchant Shield - Major Stamina",
+    "allowedSlots": [ "Shield" ],
+    "phase": 0,
+    "source": "Enchanting",
+    "stats": {
+      "stamina": 18
+    },
+    "isCustom": false
+  },
+  {
+    "id": 300006,
+    "name": "Enchant Shield - Shield Block",
+    "allowedSlots": [ "Shield" ],
+    "phase": 0,
+    "source": "Enchanting",
+    "stats": {
+      "blockValue": 15
+    },
+    "isCustom": false
+  }
+]

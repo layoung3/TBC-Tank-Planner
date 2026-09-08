@@ -7,21 +7,69 @@ namespace TbcTankPlanner.Services;
 public class CalculationService
 {
     private readonly ItemDataService _itemDataService;
+    private readonly EnchantDataService _enchantDataService;
 
-    public CalculationService(ItemDataService itemDataService)
+    public CalculationService(
+    ItemDataService itemDataService,
+    EnchantDataService enchantDataService
+    )
     {
         _itemDataService = itemDataService;
+        _enchantDataService = enchantDataService;
     }
 
     public async Task<GearStatsResponse> CalculateGearStatsAsync(GearStatsRequest request)
     {
         var allItems = await _itemDataService.GetAllItemsAsync();
-
         var itemLookup = allItems.ToDictionary(item => item.Id);
+
+        var allEnchants = await _enchantDataService.GetAllEnchantsAsync();
+        var enchantLookup = allEnchants.ToDictionary(enchant => enchant.Id);
 
         var response = new GearStatsResponse();
 
-        foreach (var itemId in GetEquippedItemIds(request))
+        if (request.EquippedGear.Count > 0)
+        {
+            foreach (var gearItem in request.EquippedGear)
+            {
+                if (gearItem.ItemId.HasValue)
+                {
+                    if (itemLookup.TryGetValue(gearItem.ItemId.Value, out var item))
+                    {
+                        AddStats(response.GearStats, item.Stats);
+                    }
+                    else
+                    {
+                        response.Warnings.Add($"Item ID {gearItem.ItemId.Value} was not found.");
+                    }
+                }
+
+                if (gearItem.EnchantId.HasValue)
+                {
+                    if (enchantLookup.TryGetValue(gearItem.EnchantId.Value, out var enchant))
+                    {
+                        if (!enchant.AllowedSlots.Contains(gearItem.Slot))
+                        {
+                            response.Warnings.Add(
+                                $"{enchant.Name} cannot be applied to {gearItem.Slot}."
+                            );
+                            continue;
+                        }
+
+                        AddStats(response.GearStats, enchant.Stats);
+                    }
+                    else
+                    {
+                        response.Warnings.Add($"Enchant ID {gearItem.EnchantId.Value} was not found.");
+                    }
+                }
+            }
+
+            return response;
+        }
+
+        // Legacy support for old React request shape.
+        foreach (var itemId in request.EquippedItemIds)
         {
             if (!itemLookup.TryGetValue(itemId, out var item))
             {
@@ -76,13 +124,19 @@ public class CalculationService
 
         var baseStats = GetProtectionPaladinBaseStats(request.Race);
 
-        var finalStats = new StatBlock();
+        var rawFinalStats = new StatBlock();
 
-        AddStats(finalStats, baseStats.Stats);
-        AddStats(finalStats, gearStatsResponse.GearStats);
+        AddStats(rawFinalStats, baseStats.Stats);
+        AddStats(rawFinalStats, gearStatsResponse.GearStats);
+
+        var convertedStats = ApplyStatConversions(
+            baseStats,
+            rawFinalStats,
+            new StatConversionModifiers()
+        );
 
         var derivedTankStats = CalculateDerivedTankStats(
-            finalStats,
+            convertedStats.Stats,
             request.IncludeHolyShield
         );
 
@@ -91,20 +145,13 @@ public class CalculationService
             Race = request.Race,
             BaseStats = baseStats,
             GearStats = gearStatsResponse.GearStats,
-            FinalStats = finalStats,
+            FinalStats = convertedStats.Stats,
+            ConvertedStats = convertedStats,
             DerivedTankStats = derivedTankStats,
+            Health = convertedStats.Health,
+            Mana = convertedStats.Mana,
             Warnings = gearStatsResponse.Warnings
         };
-
-        // Starter model:
-        // BaseHealth already represents the naked level 70 character.
-        // Gear stamina is added as 10 health per stamina.
-        response.Health = baseStats.BaseHealth + gearStatsResponse.GearStats.Stamina * 10;
-
-        // Starter model:
-        // BaseMana already represents the naked level 70 character.
-        // Gear intellect is added as 15 mana per intellect.
-        response.Mana = baseStats.BaseMana + gearStatsResponse.GearStats.Intellect * 15;
 
         return response;
     }
@@ -191,12 +238,13 @@ public class CalculationService
         const decimal dodgeRatingPerPercent = 18.9231m;
         const decimal parryRatingPerPercent = 31.536m;
         const decimal blockRatingPerPercent = 7.8846m;
+        const decimal agilityPerDodgePercent = 25m;
         const decimal holyShieldBlockChance = 30.0m;
 
         // Starter baselines. These will be refined later with talents, race/class base values,
         // buffs, Holy Shield, Redoubt, and gear-specific effects.
         const decimal baseMissVsBoss = 5.0m;
-        const decimal baseDodge = 3.0m;
+        const decimal baseDodge = 0.0m;
         const decimal baseParry = 5.0m;
         const decimal baseBlock = 5.0m;
 
@@ -223,8 +271,11 @@ public class CalculationService
             critReductionFromTalents;
 
         var missPercent = baseMissVsBoss + defenseAvoidanceBonusPercent;
+        var dodgeFromAgility = finalStats.Agility / agilityPerDodgePercent;
+
         var dodgePercent =
             baseDodge +
+            dodgeFromAgility +
             defenseAvoidanceBonusPercent +
             finalStats.DodgeRating / dodgeRatingPerPercent;
 
@@ -279,6 +330,112 @@ public class CalculationService
 
             IsUncrushable = avoidanceWithBlock >= crushAvoidanceTarget
         };
+    }
+
+    private static ConvertedCharacterStats ApplyStatConversions(
+    CharacterBaseStats baseStats,
+    StatBlock rawStats,
+    StatConversionModifiers modifiers
+)
+    {
+        var modifiedStats = ApplyPrimaryStatMultipliers(rawStats, modifiers);
+
+        const int healthPerStamina = 10;
+        const int manaPerIntellect = 15;
+        const int armorPerAgility = 2;
+        const decimal agilityPerDodgePercent = 25m;
+        const decimal strengthPerBlockValue = 20m;
+
+        var bonusStamina = modifiedStats.Stamina - baseStats.Stats.Stamina;
+        var bonusIntellect = modifiedStats.Intellect - baseStats.Stats.Intellect;
+
+        var healthFromBonusStamina = bonusStamina * healthPerStamina;
+        var manaFromBonusIntellect = bonusIntellect * manaPerIntellect;
+
+        var armorFromAgility = modifiedStats.Agility * armorPerAgility;
+        var dodgeFromAgilityPercent = modifiedStats.Agility / agilityPerDodgePercent;
+
+        var blockValueFromStrength =
+            (int)Math.Floor(modifiedStats.Strength / strengthPerBlockValue);
+
+        // Base attack power already exists in the base stats data.
+        // Only add attack power from strength gained above the naked base value.
+        var attackPowerFromStrength =
+            (modifiedStats.Strength - baseStats.Stats.Strength) * 2;
+
+        modifiedStats.Armor =
+            ApplyMultiplier(
+                modifiedStats.Armor + armorFromAgility + modifiers.FlatArmorBonus,
+                modifiers.ArmorMultiplier
+            );
+
+        modifiedStats.BlockValue += blockValueFromStrength;
+        modifiedStats.AttackPower += attackPowerFromStrength;
+
+        var healthBeforeMultiplier =
+            baseStats.BaseHealth +
+            healthFromBonusStamina +
+            modifiers.FlatHealthBonus;
+
+        var manaBeforeMultiplier =
+            baseStats.BaseMana +
+            manaFromBonusIntellect +
+            modifiers.FlatManaBonus;
+
+        return new ConvertedCharacterStats
+        {
+            Stats = modifiedStats,
+
+            Health = ApplyMultiplier(healthBeforeMultiplier, modifiers.HealthMultiplier),
+            Mana = ApplyMultiplier(manaBeforeMultiplier, modifiers.ManaMultiplier),
+
+            HealthFromBonusStamina = healthFromBonusStamina,
+            ManaFromBonusIntellect = manaFromBonusIntellect,
+
+            ArmorFromAgility = armorFromAgility,
+            DodgeFromAgilityPercent = RoundPercent(dodgeFromAgilityPercent),
+
+            BlockValueFromStrength = blockValueFromStrength,
+            AttackPowerFromStrength = attackPowerFromStrength
+        };
+    }
+
+    private static StatBlock ApplyPrimaryStatMultipliers(
+        StatBlock stats,
+        StatConversionModifiers modifiers
+    )
+    {
+        return new StatBlock
+        {
+            Stamina = ApplyMultiplier(stats.Stamina, modifiers.StaminaMultiplier),
+            Strength = ApplyMultiplier(stats.Strength, modifiers.StrengthMultiplier),
+            Agility = ApplyMultiplier(stats.Agility, modifiers.AgilityMultiplier),
+            Intellect = ApplyMultiplier(stats.Intellect, modifiers.IntellectMultiplier),
+
+            Armor = stats.Armor,
+
+            DefenseRating = stats.DefenseRating,
+            DodgeRating = stats.DodgeRating,
+            ParryRating = stats.ParryRating,
+            BlockRating = stats.BlockRating,
+            BlockValue = stats.BlockValue,
+
+            ResilienceRating = stats.ResilienceRating,
+
+            HitRating = stats.HitRating,
+            SpellHitRating = stats.SpellHitRating,
+            ExpertiseRating = stats.ExpertiseRating,
+
+            AttackPower = stats.AttackPower,
+            SpellPower = stats.SpellPower,
+
+            Mp5 = stats.Mp5
+        };
+    }
+
+    private static int ApplyMultiplier(int value, decimal multiplier)
+    {
+        return (int)Math.Floor(value * multiplier);
     }
 
     private static decimal RoundPercent(decimal value)

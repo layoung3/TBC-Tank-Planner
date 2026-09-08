@@ -12,6 +12,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSingleton<ItemDataService>();
+builder.Services.AddSingleton<EnchantDataService>();
 builder.Services.AddSingleton<CalculationService>();
 
 builder.Services.AddCors(options =>
