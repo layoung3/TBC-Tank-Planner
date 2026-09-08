@@ -251,6 +251,8 @@ function App() {
     ].filter((stat) => stat.value !== 0)
   : [];
 
+  const derivedTankStats = finalCharacterStats?.derivedTankStats;
+
   const selectedPhaseLabel =
   phaseOptions.find((option) => option.value === selectedPhase)?.label ??
   "All TBC";
@@ -465,6 +467,38 @@ function App() {
                   <span>Mana</span>
                   <strong>{finalCharacterStats.mana}</strong>
                 </div>
+
+                {derivedTankStats && (
+                  <>
+                    <div
+                      className={`summary-card status-card ${
+                        derivedTankStats.isCritImmune ? "status-good" : "status-bad"
+                      }`}
+                    >
+                      <span>Crit Immune</span>
+                      <strong>{derivedTankStats.isCritImmune ? "Yes" : "No"}</strong>
+                      <small>
+                        {derivedTankStats.isCritImmune
+                          ? `${derivedTankStats.totalCritReductionPercent}% reduction`
+                          : `${derivedTankStats.critReductionNeededPercent}% short`}
+                      </small>
+                    </div>
+
+                    <div
+                      className={`summary-card status-card ${
+                        derivedTankStats.isUncrushable ? "status-good" : "status-bad"
+                      }`}
+                    >
+                      <span>Uncrushable</span>
+                      <strong>{derivedTankStats.isUncrushable ? "Yes" : "No"}</strong>
+                      <small>
+                        {derivedTankStats.isUncrushable
+                          ? `${derivedTankStats.avoidanceWithBlockPercent}% table coverage`
+                          : `${derivedTankStats.crushAvoidanceNeededPercent}% short`}
+                      </small>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="stat-list">
@@ -475,6 +509,49 @@ function App() {
                   </div>
                 ))}
               </div>
+
+              {derivedTankStats && (
+                <>
+                  <h3 className="subsection-title">Tank Table</h3>
+
+                  <div className="stat-list">
+                    <div className="stat-row">
+                      <span>Defense Skill</span>
+                      <strong>{derivedTankStats.defenseSkill}</strong>
+                    </div>
+
+                    <div className="stat-row">
+                      <span>Crit Reduction</span>
+                      <strong>{derivedTankStats.totalCritReductionPercent}%</strong>
+                    </div>
+
+                    <div className="stat-row">
+                      <span>Miss</span>
+                      <strong>{derivedTankStats.missPercent}%</strong>
+                    </div>
+
+                    <div className="stat-row">
+                      <span>Dodge</span>
+                      <strong>{derivedTankStats.dodgePercent}%</strong>
+                    </div>
+
+                    <div className="stat-row">
+                      <span>Parry</span>
+                      <strong>{derivedTankStats.parryPercent}%</strong>
+                    </div>
+
+                    <div className="stat-row">
+                      <span>Block</span>
+                      <strong>{derivedTankStats.blockPercent}%</strong>
+                    </div>
+
+                    <div className="stat-row">
+                      <span>Avoidance + Block</span>
+                      <strong>{derivedTankStats.avoidanceWithBlockPercent}%</strong>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <p className="stat-note">
                 Final stats currently include base level 70 Protection Paladin stats

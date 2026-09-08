@@ -96,5 +96,28 @@ export interface FinalCharacterStatsResponse {
   baseStats: CharacterBaseStats;
   gearStats: StatBlock;
   finalStats: StatBlock;
+  derivedTankStats: DerivedTankStats;
   warnings: string[];
+}
+
+export interface DerivedTankStats {
+  defenseSkill: number;
+
+  critReductionTargetPercent: number;
+  critReductionFromDefensePercent: number;
+  critReductionFromResiliencePercent: number;
+  critReductionFromTalentsPercent: number;
+  totalCritReductionPercent: number;
+  critReductionNeededPercent: number;
+  isCritImmune: boolean;
+
+  missPercent: number;
+  dodgePercent: number;
+  parryPercent: number;
+  blockPercent: number;
+
+  avoidanceWithBlockPercent: number;
+  crushAvoidanceTargetPercent: number;
+  crushAvoidanceNeededPercent: number;
+  isUncrushable: boolean;
 }

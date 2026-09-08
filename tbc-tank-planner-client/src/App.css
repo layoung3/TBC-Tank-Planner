@@ -371,3 +371,24 @@ button {
   font-size: 13px;
   line-height: 1.4;
 }
+
+.status-card small {
+  display: block;
+  margin-top: 4px;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.status-good {
+  border-color: #22c55e;
+}
+
+.status-bad {
+  border-color: #ef4444;
+}
+
+.subsection-title {
+  margin: 18px 0 10px;
+  color: #f9fafb;
+  font-size: 16px;
+}
