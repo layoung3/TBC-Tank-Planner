@@ -5,6 +5,7 @@ import type {
   GearStatsResponse,
   ItemSlot,
   TankClass,
+  TbcEnchant,
   TbcItem,
 } from "./types";
 
@@ -31,6 +32,31 @@ export async function getItems(
 
   if (!response.ok) {
     throw new Error("Failed to load items.");
+  }
+
+  return response.json();
+}
+
+export async function getEnchants(
+  slot?: ItemSlot,
+  phase?: number
+): Promise<TbcEnchant[]> {
+  const params = new URLSearchParams();
+
+  if (slot) {
+    params.set("slot", slot);
+  }
+
+  if (phase !== undefined) {
+    params.set("phase", phase.toString());
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/enchants?${params.toString()}`
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load enchants.");
   }
 
   return response.json();

@@ -76,6 +76,16 @@ export interface EquippedGearItem {
   gemIds: number[];
 }
 
+export interface TbcEnchant {
+  id: number;
+  name: string;
+  allowedSlots: ItemSlot[];
+  phase: number;
+  source: string;
+  stats: StatBlock;
+  isCustom: boolean;
+}
+
 export interface GearStatsRequest {
   equippedGear: EquippedGearItem[];
 }

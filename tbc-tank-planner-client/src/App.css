@@ -422,3 +422,43 @@ button {
   color: #9ca3af;
   font-size: 13px;
 }
+
+.gear-slot-card {
+  display: grid;
+  gap: 6px;
+}
+
+.gear-slot-main {
+  width: 100%;
+}
+
+.gear-slot-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.enchant-button,
+.remove-enchant-button {
+  border: 1px solid #374151;
+  background: #111827;
+  color: #d1d5db;
+  border-radius: 8px;
+  padding: 7px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.enchant-button {
+  flex: 1;
+  text-align: left;
+}
+
+.enchant-button:hover,
+.remove-enchant-button:hover {
+  border-color: #facc15;
+  color: #f9fafb;
+}
+
+.remove-enchant-button {
+  color: #fca5a5;
+}

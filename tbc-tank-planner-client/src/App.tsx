@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   calculateFinalCharacterStats,
   calculateGearStats,
+  getEnchants,
   getItems,
 } from "./api";
 import type {
@@ -10,6 +11,7 @@ import type {
   FinalCharacterStatsResponse,
   ItemSlot,
   StatBlock,
+  TbcEnchant,
   TbcItem,
 } from "./types";
 import "./App.css";
@@ -19,6 +21,7 @@ interface EquippedSlot {
   slot: ItemSlot;
   label: string;
   item?: TbcItem;
+  enchant?: TbcEnchant;
 }
 
 interface PhaseFilterOption {
@@ -125,10 +128,19 @@ function App() {
 
   const [isCalculatingFinalStats, setIsCalculatingFinalStats] = useState(false);
   const [finalStatsError, setFinalStatsError] = useState<string | null>(null);
+
+  const [selectedEnchantSlotIndex, setSelectedEnchantSlotIndex] = useState<number | null>(null);
+  const [availableEnchants, setAvailableEnchants] = useState<TbcEnchant[]>([]);
+  const [isLoadingEnchants, setIsLoadingEnchants] = useState(false);
+  const [enchantError, setEnchantError] = useState<string | null>(null);
+  const [enchantSearchTerm, setEnchantSearchTerm] = useState("");
   
 
   const selectedSlot =
     selectedSlotIndex !== null ? gear[selectedSlotIndex] : undefined;
+
+  const selectedEnchantSlot =
+    selectedEnchantSlotIndex !== null ? gear[selectedEnchantSlotIndex] : undefined;
 
   const equippedGear = useMemo<EquippedGearItem[]>(
     () =>
@@ -138,7 +150,7 @@ function App() {
           slotKey: gearSlot.slotKey,
           slot: gearSlot.slot,
           itemId: gearSlot.item?.id ?? null,
-          enchantId: null,
+          enchantId: gearSlot.enchant?.id ?? null,
           gemIds: [],
         })),
     [gear]
@@ -288,6 +300,26 @@ function App() {
     });
   }, [availableItems, itemSearchTerm]);
 
+  const filteredAvailableEnchants = useMemo(() => {
+    const search = enchantSearchTerm.trim().toLowerCase();
+
+    if (!search) {
+      return availableEnchants;
+    }
+
+    return availableEnchants.filter((enchant) => {
+      const searchableText = [
+        enchant.name,
+        enchant.source,
+        enchant.phase.toString(),
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(search);
+    });
+  }, [availableEnchants, enchantSearchTerm]);
+
   async function loadItemsForSlot(slotIndex: number, phase?: number) {
     const gearSlot = gear[slotIndex];
 
@@ -320,6 +352,9 @@ function App() {
     if (selectedSlotIndex !== null) {
       void loadItemsForSlot(selectedSlotIndex, nextPhase);
     }
+    if (selectedEnchantSlotIndex !== null) {
+      void loadEnchantsForSlot(selectedEnchantSlotIndex, nextPhase);
+    }
   }
 
   function equipItem(item: TbcItem) {
@@ -347,6 +382,71 @@ function App() {
     setAvailableItems([]);
     setError(null);
     setItemSearchTerm("");
+  }
+
+  async function loadEnchantsForSlot(slotIndex: number, phase?: number) {
+    const gearSlot = gear[slotIndex];
+
+    setAvailableEnchants([]);
+    setEnchantError(null);
+    setIsLoadingEnchants(true);
+
+    try {
+      const enchants = await getEnchants(gearSlot.slot, phase);
+      setAvailableEnchants(enchants);
+    } catch (err) {
+      setEnchantError(
+        err instanceof Error ? err.message : "Failed to load enchants."
+      );
+    } finally {
+      setIsLoadingEnchants(false);
+    }
+  }
+
+  async function openEnchantPicker(slotIndex: number) {
+    setSelectedEnchantSlotIndex(slotIndex);
+    setEnchantSearchTerm("");
+
+    await loadEnchantsForSlot(slotIndex, selectedPhase);
+  }
+
+  function equipEnchant(enchant: TbcEnchant) {
+    if (selectedEnchantSlotIndex === null) {
+      return;
+    }
+
+    setGear((currentGear) =>
+      currentGear.map((gearSlot, index) =>
+        index === selectedEnchantSlotIndex
+          ? {
+              ...gearSlot,
+              enchant,
+            }
+          : gearSlot
+      )
+    );
+
+    closeEnchantModal();
+  }
+
+  function removeEnchant(slotIndex: number) {
+    setGear((currentGear) =>
+      currentGear.map((gearSlot, index) =>
+        index === slotIndex
+          ? {
+              ...gearSlot,
+              enchant: undefined,
+            }
+          : gearSlot
+      )
+    );
+  }
+
+  function closeEnchantModal() {
+    setSelectedEnchantSlotIndex(null);
+    setAvailableEnchants([]);
+    setEnchantError(null);
+    setEnchantSearchTerm("");
   }
 
   return (
@@ -389,20 +489,36 @@ function App() {
 
           <div className="gear-grid">
             {gear.map((gearSlot, index) => (
-              <button
-                key={`${gearSlot.label}-${index}`}
-                className="gear-slot"
-                onClick={() => openItemPicker(index)}
-              >
-                <span className="gear-slot-label">{gearSlot.label}</span>
+              <div key={`${gearSlot.label}-${index}`} className="gear-slot-card">
+                <button className="gear-slot gear-slot-main" onClick={() => openItemPicker(index)}>
+                  <span className="gear-slot-label">{gearSlot.label}</span>
 
-                <span className="gear-slot-content">
-                  <ItemIcon item={gearSlot.item} />
-                  <span className="gear-slot-item">
-                    {gearSlot.item?.name ?? "Empty"}
+                  <span className="gear-slot-content">
+                    <ItemIcon item={gearSlot.item} />
+                    <span className="gear-slot-item">{gearSlot.item?.name ?? "Empty"}</span>
                   </span>
-                </span>
-              </button>
+                </button>
+
+                {gearSlot.item && (
+                  <div className="gear-slot-actions">
+                    <button
+                      className="enchant-button"
+                      onClick={() => openEnchantPicker(index)}
+                    >
+                      {gearSlot.enchant ? gearSlot.enchant.name : "Add Enchant"}
+                    </button>
+
+                    {gearSlot.enchant && (
+                      <button
+                        className="remove-enchant-button"
+                        onClick={() => removeEnchant(index)}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </section>
@@ -679,6 +795,90 @@ function App() {
                       `+${item.stats.dodgeRating} Dodge `}
                     {item.stats.spellPower > 0 &&
                       `+${item.stats.spellPower} SP`}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      {selectedEnchantSlot && (
+        <div className="modal-backdrop" onClick={closeEnchantModal}>
+          <div className="modal" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2>Select Enchant</h2>
+                <p className="modal-subtitle">
+                  {selectedEnchantSlot.label} • Filter: {selectedPhaseLabel}
+                </p>
+              </div>
+
+              <button onClick={closeEnchantModal}>X</button>
+            </div>
+
+            <div className="picker-toolbar">
+              <label className="picker-search">
+                <span>Search Enchants</span>
+                <input
+                  value={enchantSearchTerm}
+                  onChange={(event) => setEnchantSearchTerm(event.target.value)}
+                  placeholder="Search by name or source..."
+                />
+              </label>
+
+              <label className="phase-filter">
+                <span>Available Through</span>
+                <select
+                  value={selectedPhase ?? "all"}
+                  onChange={(event) => handlePhaseChange(event.target.value)}
+                >
+                  {phaseOptions.map((phaseOption) => (
+                    <option key={phaseOption.label} value={phaseOption.value ?? "all"}>
+                      {phaseOption.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {isLoadingEnchants && <p>Loading enchants...</p>}
+
+            {enchantError && <p className="error">{enchantError}</p>}
+
+            {!isLoadingEnchants &&
+              !enchantError &&
+              filteredAvailableEnchants.length === 0 && (
+                <p className="muted">
+                  {availableEnchants.length === 0
+                    ? "No enchants found for this slot and phase yet."
+                    : "No enchants match your search."}
+                </p>
+              )}
+
+            <div className="item-list">
+              {filteredAvailableEnchants.map((enchant) => (
+                <button
+                  key={enchant.id}
+                  className="item-row"
+                  onClick={() => equipEnchant(enchant)}
+                >
+                  <div>
+                    <span className="item-name">{enchant.name}</span>
+                    <span className="item-details">
+                      Phase {enchant.phase} • {enchant.source}
+                    </span>
+                  </div>
+
+                  <span className="item-stats">
+                    {enchant.stats.stamina > 0 && `+${enchant.stats.stamina} Stam `}
+                    {enchant.stats.defenseRating > 0 &&
+                      `+${enchant.stats.defenseRating} Def `}
+                    {enchant.stats.dodgeRating > 0 &&
+                      `+${enchant.stats.dodgeRating} Dodge `}
+                    {enchant.stats.blockValue > 0 &&
+                      `+${enchant.stats.blockValue} Block Value `}
+                    {enchant.stats.spellPower > 0 &&
+                      `+${enchant.stats.spellPower} SP`}
                   </span>
                 </button>
               ))}
