@@ -487,9 +487,14 @@ public class CalculationService
             var gemId = gearItem.GemIds[index];
             var socketColor = equippedItem.Sockets[index];
 
-            if (!gemLookup.TryGetValue(gemId, out var gem))
+            if (!gemId.HasValue)
             {
-                response.Warnings.Add($"Gem ID {gemId} was not found.");
+                continue;
+            }
+
+            if (!gemLookup.TryGetValue(gemId.Value, out var gem))
+            {
+                response.Warnings.Add($"Gem ID {gemId.Value} was not found.");
                 continue;
             }
 

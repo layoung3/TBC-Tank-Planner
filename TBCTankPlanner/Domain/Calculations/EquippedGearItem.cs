@@ -12,5 +12,5 @@ public class EquippedGearItem
 
     public int? EnchantId { get; set; }
 
-    public List<int> GemIds { get; set; } = [];
+    public List<int?> GemIds { get; set; } = [];
 }
