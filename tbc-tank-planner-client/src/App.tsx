@@ -116,6 +116,7 @@ function App() {
   const [calculationWarnings, setCalculationWarnings] = useState<string[]>([]);
   const [isCalculatingStats, setIsCalculatingStats] = useState(false);
   const [selectedRace, setSelectedRace] = useState<CharacterRace>("BloodElf");
+  const [includeHolyShield, setIncludeHolyShield] = useState(true);
 
   const [finalCharacterStats, setFinalCharacterStats] =
     useState<FinalCharacterStatsResponse | null>(null);
@@ -168,7 +169,8 @@ function App() {
 
         const result = await calculateFinalCharacterStats(
           selectedRace,
-          equippedItemIds
+          equippedItemIds,
+          includeHolyShield
         );
 
         setFinalCharacterStats(result);
@@ -180,7 +182,7 @@ function App() {
     }
 
     void updateFinalCharacterStats();
-  }, [selectedRace, equippedItemIds]);
+  }, [selectedRace, equippedItemIds, includeHolyShield]);
 
   const visibleStatRows = [
     { label: "Stamina", value: gearStatTotals.stamina },
@@ -400,6 +402,21 @@ function App() {
         <section className="panel stats-panel">
           <h2>Gear Stat Totals</h2>
 
+          <div className="effect-toggle-row">
+            <label className="effect-toggle">
+              <input
+                type="checkbox"
+                checked={includeHolyShield}
+                onChange={(event) => setIncludeHolyShield(event.target.checked)}
+              />
+              <span>Include Holy Shield</span>
+            </label>
+
+            <span className="effect-note">
+              Adds +30% block chance to the crush table while active.
+            </span>
+          </div>
+
           {isCalculatingStats && <p className="muted">Calculating...</p>}
 
           {visibleStatRows.length === 0 ? (
@@ -543,6 +560,15 @@ function App() {
                     <div className="stat-row">
                       <span>Block</span>
                       <strong>{derivedTankStats.blockPercent}%</strong>
+                    </div>
+
+                    <div className="stat-row">
+                      <span>Holy Shield</span>
+                      <strong>
+                        {derivedTankStats.isHolyShieldIncluded
+                          ? `+${derivedTankStats.holyShieldBlockChancePercent}% Block`
+                          : "Not Included"}
+                      </strong>
                     </div>
 
                     <div className="stat-row">

@@ -87,6 +87,7 @@ export interface CharacterBaseStats {
 export interface FinalCharacterStatsRequest {
   race: CharacterRace;
   equippedItemIds: number[];
+  includeHolyShield: boolean;
 }
 
 export interface FinalCharacterStatsResponse {
@@ -115,6 +116,9 @@ export interface DerivedTankStats {
   dodgePercent: number;
   parryPercent: number;
   blockPercent: number;
+
+  isHolyShieldIncluded: boolean;
+  holyShieldBlockChancePercent: number;
 
   avoidanceWithBlockPercent: number;
   crushAvoidanceTargetPercent: number;

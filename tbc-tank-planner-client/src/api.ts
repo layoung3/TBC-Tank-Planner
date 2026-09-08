@@ -57,19 +57,21 @@ export async function calculateGearStats(
 
 export async function calculateFinalCharacterStats(
   race: CharacterRace,
-  equippedItemIds: number[]
+  equippedItemIds: number[],
+  includeHolyShield: boolean
 ): Promise<FinalCharacterStatsResponse> {
   const response = await fetch(
     `${API_BASE_URL}/api/calculations/final-character-stats`,
     {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        race,
-        equippedItemIds,
-      }),
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            race,
+            equippedItemIds,
+            includeHolyShield,
+        }),
     }
   );
 

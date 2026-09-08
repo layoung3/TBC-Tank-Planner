@@ -392,3 +392,33 @@ button {
   color: #f9fafb;
   font-size: 16px;
 }
+
+.effect-toggle-row {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #374151;
+  background: #111827;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.effect-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f9fafb;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.effect-toggle input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.effect-note {
+  color: #9ca3af;
+  font-size: 13px;
+}
