@@ -1,4 +1,9 @@
-import type { ItemSlot, TankClass, TbcItem } from "./types";
+import type {
+  GearStatsResponse,
+  ItemSlot,
+  TankClass,
+  TbcItem,
+} from "./types";
 
 const API_BASE_URL = "https://localhost:7045";
 
@@ -23,6 +28,26 @@ export async function getItems(
 
   if (!response.ok) {
     throw new Error("Failed to load items.");
+  }
+
+  return response.json();
+}
+
+export async function calculateGearStats(
+  equippedItemIds: number[]
+): Promise<GearStatsResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/calculations/gear-stats`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      equippedItemIds,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to calculate gear stats.");
   }
 
   return response.json();

@@ -138,6 +138,16 @@ button {
   color: #6b7280;
 }
 
+.warning-list {
+  margin-top: 12px;
+}
+
+.warning-message {
+  margin: 6px 0;
+  color: #facc15;
+  font-size: 13px;
+}
+
 .gear-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -61,3 +61,12 @@ export interface TbcItem {
   socketBonus: StatBlock;
   isCustom: boolean;
 }
+
+export interface GearStatsRequest {
+  equippedItemIds: number[];
+}
+
+export interface GearStatsResponse {
+  gearStats: StatBlock;
+  warnings: string[];
+}

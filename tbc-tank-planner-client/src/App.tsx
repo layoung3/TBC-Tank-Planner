@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
-import { getItems } from "./api";
-import type { ItemSlot, TbcItem } from "./types";
+import { useEffect, useMemo, useState } from "react";
+import { calculateGearStats, getItems } from "./api";
+import type { ItemSlot, StatBlock, TbcItem } from "./types";
 import "./App.css";
 
 interface EquippedSlot {
@@ -44,7 +44,7 @@ const initialGear: EquippedSlot[] = [
   { slot: "Libram", label: "Libram" },
 ];
 
-function createEmptyStats() {
+function createEmptyStats(): StatBlock {
   return {
     stamina: 0,
     strength: 0,
@@ -64,34 +64,6 @@ function createEmptyStats() {
     spellPower: 0,
     mp5: 0,
   };
-}
-
-function addStats(total: ReturnType<typeof createEmptyStats>, itemStats?: Partial<ReturnType<typeof createEmptyStats>>) {
-  if (!itemStats) {
-    return;
-  }
-
-  total.stamina += itemStats.stamina ?? 0;
-  total.strength += itemStats.strength ?? 0;
-  total.agility += itemStats.agility ?? 0;
-  total.intellect += itemStats.intellect ?? 0;
-  total.armor += itemStats.armor ?? 0;
-
-  total.defenseRating += itemStats.defenseRating ?? 0;
-  total.dodgeRating += itemStats.dodgeRating ?? 0;
-  total.parryRating += itemStats.parryRating ?? 0;
-  total.blockRating += itemStats.blockRating ?? 0;
-  total.blockValue += itemStats.blockValue ?? 0;
-
-  total.resilienceRating += itemStats.resilienceRating ?? 0;
-
-  total.hitRating += itemStats.hitRating ?? 0;
-  total.spellHitRating += itemStats.spellHitRating ?? 0;
-  total.expertiseRating += itemStats.expertiseRating ?? 0;
-
-  total.attackPower += itemStats.attackPower ?? 0;
-  total.spellPower += itemStats.spellPower ?? 0;
-  total.mp5 += itemStats.mp5 ?? 0;
 }
 
 function ItemIcon({ item }: { item?: TbcItem }) {
@@ -116,21 +88,43 @@ function App() {
   const [isLoadingItems, setIsLoadingItems] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [itemSearchTerm, setItemSearchTerm] = useState("");
+  const [gearStatTotals, setGearStatTotals] = useState<StatBlock>(
+    createEmptyStats()
+  );
+  const [calculationWarnings, setCalculationWarnings] = useState<string[]>([]);
+  const [isCalculatingStats, setIsCalculatingStats] = useState(false);
   
 
   const selectedSlot =
     selectedSlotIndex !== null ? gear[selectedSlotIndex] : undefined;
 
-  const gearStatTotals = useMemo(() => {
-    const totals = createEmptyStats();
+  useEffect(() => {
+    async function updateGearStats() {
+      const equippedItemIds = gear
+        .map((gearSlot) => gearSlot.item?.id)
+        .filter((itemId): itemId is number => itemId !== undefined);
 
-    gear.forEach((gearSlot) => {
-      if (gearSlot.item) {
-        addStats(totals, gearSlot.item.stats);
+      if (equippedItemIds.length === 0) {
+        setGearStatTotals(createEmptyStats());
+        setCalculationWarnings([]);
+        return;
       }
-    });
 
-    return totals;
+      try {
+        setIsCalculatingStats(true);
+
+        const result = await calculateGearStats(equippedItemIds);
+
+        setGearStatTotals(result.gearStats);
+        setCalculationWarnings(result.warnings);
+      } catch {
+        setCalculationWarnings(["Unable to calculate gear stats."]);
+      } finally {
+        setIsCalculatingStats(false);
+      }
+    }
+
+    void updateGearStats();
   }, [gear]);
 
   const visibleStatRows = [
@@ -300,6 +294,8 @@ function App() {
         <section className="panel stats-panel">
           <h2>Gear Stat Totals</h2>
 
+          {isCalculatingStats && <p className="muted">Calculating...</p>}
+
           {visibleStatRows.length === 0 ? (
             <p className="muted">Equip gear to see stat totals.</p>
           ) : (
@@ -309,6 +305,16 @@ function App() {
                   <span>{stat.label}</span>
                   <strong>{stat.value}</strong>
                 </div>
+              ))}
+            </div>
+          )}
+
+          {calculationWarnings.length > 0 && (
+            <div className="warning-list">
+              {calculationWarnings.map((warning) => (
+                <p key={warning} className="warning-message">
+                  {warning}
+                </p>
               ))}
             </div>
           )}
