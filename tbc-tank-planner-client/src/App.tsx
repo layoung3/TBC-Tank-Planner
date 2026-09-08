@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { getItems } from "./api";
 import type { ItemSlot, TbcItem } from "./types";
 import "./App.css";
@@ -29,6 +29,56 @@ const initialGear: EquippedSlot[] = [
   { slot: "Libram", label: "Libram" },
 ];
 
+function createEmptyStats() {
+  return {
+    stamina: 0,
+    strength: 0,
+    agility: 0,
+    intellect: 0,
+    armor: 0,
+    defenseRating: 0,
+    dodgeRating: 0,
+    parryRating: 0,
+    blockRating: 0,
+    blockValue: 0,
+    resilienceRating: 0,
+    hitRating: 0,
+    spellHitRating: 0,
+    expertiseRating: 0,
+    attackPower: 0,
+    spellPower: 0,
+    mp5: 0,
+  };
+}
+
+function addStats(total: ReturnType<typeof createEmptyStats>, itemStats?: Partial<ReturnType<typeof createEmptyStats>>) {
+  if (!itemStats) {
+    return;
+  }
+
+  total.stamina += itemStats.stamina ?? 0;
+  total.strength += itemStats.strength ?? 0;
+  total.agility += itemStats.agility ?? 0;
+  total.intellect += itemStats.intellect ?? 0;
+  total.armor += itemStats.armor ?? 0;
+
+  total.defenseRating += itemStats.defenseRating ?? 0;
+  total.dodgeRating += itemStats.dodgeRating ?? 0;
+  total.parryRating += itemStats.parryRating ?? 0;
+  total.blockRating += itemStats.blockRating ?? 0;
+  total.blockValue += itemStats.blockValue ?? 0;
+
+  total.resilienceRating += itemStats.resilienceRating ?? 0;
+
+  total.hitRating += itemStats.hitRating ?? 0;
+  total.spellHitRating += itemStats.spellHitRating ?? 0;
+  total.expertiseRating += itemStats.expertiseRating ?? 0;
+
+  total.attackPower += itemStats.attackPower ?? 0;
+  total.spellPower += itemStats.spellPower ?? 0;
+  total.mp5 += itemStats.mp5 ?? 0;
+}
+
 function ItemIcon({ item }: { item?: TbcItem }) {
   if (item?.iconUrl) {
     return (
@@ -52,6 +102,38 @@ function App() {
 
   const selectedSlot =
     selectedSlotIndex !== null ? gear[selectedSlotIndex] : undefined;
+
+  const gearStatTotals = useMemo(() => {
+    const totals = createEmptyStats();
+
+    gear.forEach((gearSlot) => {
+      if (gearSlot.item) {
+        addStats(totals, gearSlot.item.stats);
+      }
+    });
+
+    return totals;
+  }, [gear]);
+
+  const visibleStatRows = [
+    { label: "Stamina", value: gearStatTotals.stamina },
+    { label: "Strength", value: gearStatTotals.strength },
+    { label: "Agility", value: gearStatTotals.agility },
+    { label: "Intellect", value: gearStatTotals.intellect },
+    { label: "Armor", value: gearStatTotals.armor },
+    { label: "Defense Rating", value: gearStatTotals.defenseRating },
+    { label: "Dodge Rating", value: gearStatTotals.dodgeRating },
+    { label: "Parry Rating", value: gearStatTotals.parryRating },
+    { label: "Block Rating", value: gearStatTotals.blockRating },
+    { label: "Block Value", value: gearStatTotals.blockValue },
+    { label: "Resilience Rating", value: gearStatTotals.resilienceRating },
+    { label: "Hit Rating", value: gearStatTotals.hitRating },
+    { label: "Spell Hit Rating", value: gearStatTotals.spellHitRating },
+    { label: "Expertise Rating", value: gearStatTotals.expertiseRating },
+    { label: "Attack Power", value: gearStatTotals.attackPower },
+    { label: "Spell Power", value: gearStatTotals.spellPower },
+    { label: "MP5", value: gearStatTotals.mp5 },
+  ].filter((stat) => stat.value !== 0);
 
   async function openItemPicker(slotIndex: number) {
     const gearSlot = gear[slotIndex];
@@ -137,9 +219,23 @@ function App() {
         </section>
 
         <section className="panel stats-panel">
-          <h2>Character Stats</h2>
-          <p className="muted">
-            Stat totals will be added after the gear picker is working.
+          <h2>Gear Stat Totals</h2>
+
+          {visibleStatRows.length === 0 ? (
+            <p className="muted">Equip gear to see stat totals.</p>
+          ) : (
+            <div className="stat-list">
+              {visibleStatRows.map((stat) => (
+                <div className="stat-row" key={stat.label}>
+                  <span>{stat.label}</span>
+                  <strong>{stat.value}</strong>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="stat-note">
+            Gear only. Gems, enchants, socket bonuses, talents, buffs, and base character stats will be added later.
           </p>
         </section>
 

@@ -229,3 +229,31 @@ button {
   color: #6b7280;
   font-weight: 700;
 }
+
+.stat-list {
+  display: grid;
+  gap: 8px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid #374151;
+}
+
+.stat-row span {
+  color: #d1d5db;
+}
+
+.stat-row strong {
+  color: #f9fafb;
+}
+
+.stat-note {
+  margin-top: 16px;
+  color: #9ca3af;
+  font-size: 13px;
+  line-height: 1.4;
+}
