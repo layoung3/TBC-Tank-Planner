@@ -21,7 +21,7 @@ public class CalculationService
 
         var response = new GearStatsResponse();
 
-        foreach (var itemId in request.EquippedItemIds)
+        foreach (var itemId in GetEquippedItemIds(request))
         {
             if (!itemLookup.TryGetValue(itemId, out var item))
             {
@@ -69,6 +69,7 @@ public class CalculationService
         var gearStatsResponse = await CalculateGearStatsAsync(
             new GearStatsRequest
             {
+                EquippedGear = request.EquippedGear,
                 EquippedItemIds = request.EquippedItemIds
             }
         );
@@ -283,5 +284,18 @@ public class CalculationService
     private static decimal RoundPercent(decimal value)
     {
         return Math.Round(value, 2, MidpointRounding.AwayFromZero);
+    }
+
+    private static List<int> GetEquippedItemIds(GearStatsRequest request)
+    {
+        if (request.EquippedGear.Count > 0)
+        {
+            return request.EquippedGear
+                .Where(gearItem => gearItem.ItemId.HasValue)
+                .Select(gearItem => gearItem.ItemId!.Value)
+                .ToList();
+        }
+
+        return request.EquippedItemIds;
     }
 }
