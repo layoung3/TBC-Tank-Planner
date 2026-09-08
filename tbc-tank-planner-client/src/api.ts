@@ -1,4 +1,6 @@
 import type {
+  CharacterRace,
+  FinalCharacterStatsResponse,
   GearStatsResponse,
   ItemSlot,
   TankClass,
@@ -48,6 +50,31 @@ export async function calculateGearStats(
 
   if (!response.ok) {
     throw new Error("Failed to calculate gear stats.");
+  }
+
+  return response.json();
+}
+
+export async function calculateFinalCharacterStats(
+  race: CharacterRace,
+  equippedItemIds: number[]
+): Promise<FinalCharacterStatsResponse> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/calculations/final-character-stats`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        race,
+        equippedItemIds,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to calculate final character stats.");
   }
 
   return response.json();

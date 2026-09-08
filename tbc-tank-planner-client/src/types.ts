@@ -27,6 +27,12 @@ export type SocketColor =
   | "Meta"
   | "Prismatic";
 
+export type CharacterRace =
+  | "BloodElf"
+  | "Draenei"
+  | "Human"
+  | "Dwarf";
+
 export interface StatBlock {
   stamina: number;
   strength: number;
@@ -68,5 +74,27 @@ export interface GearStatsRequest {
 
 export interface GearStatsResponse {
   gearStats: StatBlock;
+  warnings: string[];
+}
+
+export interface CharacterBaseStats {
+  race: CharacterRace;
+  baseHealth: number;
+  baseMana: number;
+  stats: StatBlock;
+}
+
+export interface FinalCharacterStatsRequest {
+  race: CharacterRace;
+  equippedItemIds: number[];
+}
+
+export interface FinalCharacterStatsResponse {
+  race: CharacterRace;
+  health: number;
+  mana: number;
+  baseStats: CharacterBaseStats;
+  gearStats: StatBlock;
+  finalStats: StatBlock;
   warnings: string[];
 }

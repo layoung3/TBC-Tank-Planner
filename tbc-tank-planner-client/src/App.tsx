@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { calculateGearStats, getItems } from "./api";
-import type { ItemSlot, StatBlock, TbcItem } from "./types";
+import {
+  calculateFinalCharacterStats,
+  calculateGearStats,
+  getItems,
+} from "./api";
+import type {
+  CharacterRace,
+  FinalCharacterStatsResponse,
+  ItemSlot,
+  StatBlock,
+  TbcItem,
+} from "./types";
 import "./App.css";
 
 interface EquippedSlot {
@@ -22,6 +32,18 @@ const phaseOptions: PhaseFilterOption[] = [
   { label: "Through Phase 3", value: 3 },
   { label: "Through Phase 4", value: 4 },
   { label: "Through Phase 5", value: 5 },
+];
+
+interface RaceOption {
+  label: string;
+  value: CharacterRace;
+}
+
+const raceOptions: RaceOption[] = [
+  { label: "Blood Elf", value: "BloodElf" },
+  { label: "Draenei", value: "Draenei" },
+  { label: "Human", value: "Human" },
+  { label: "Dwarf", value: "Dwarf" },
 ];
 
 const initialGear: EquippedSlot[] = [
@@ -93,17 +115,28 @@ function App() {
   );
   const [calculationWarnings, setCalculationWarnings] = useState<string[]>([]);
   const [isCalculatingStats, setIsCalculatingStats] = useState(false);
+  const [selectedRace, setSelectedRace] = useState<CharacterRace>("BloodElf");
+
+  const [finalCharacterStats, setFinalCharacterStats] =
+    useState<FinalCharacterStatsResponse | null>(null);
+
+  const [isCalculatingFinalStats, setIsCalculatingFinalStats] = useState(false);
+  const [finalStatsError, setFinalStatsError] = useState<string | null>(null);
   
 
   const selectedSlot =
     selectedSlotIndex !== null ? gear[selectedSlotIndex] : undefined;
 
+  const equippedItemIds = useMemo(
+    () =>
+      gear
+        .map((gearSlot) => gearSlot.item?.id)
+        .filter((itemId): itemId is number => itemId !== undefined),
+    [gear]
+  );
+
   useEffect(() => {
     async function updateGearStats() {
-      const equippedItemIds = gear
-        .map((gearSlot) => gearSlot.item?.id)
-        .filter((itemId): itemId is number => itemId !== undefined);
-
       if (equippedItemIds.length === 0) {
         setGearStatTotals(createEmptyStats());
         setCalculationWarnings([]);
@@ -125,7 +158,29 @@ function App() {
     }
 
     void updateGearStats();
-  }, [gear]);
+  }, [equippedItemIds]);
+
+  useEffect(() => {
+    async function updateFinalCharacterStats() {
+      try {
+        setIsCalculatingFinalStats(true);
+        setFinalStatsError(null);
+
+        const result = await calculateFinalCharacterStats(
+          selectedRace,
+          equippedItemIds
+        );
+
+        setFinalCharacterStats(result);
+      } catch {
+        setFinalStatsError("Unable to calculate final character stats.");
+      } finally {
+        setIsCalculatingFinalStats(false);
+      }
+    }
+
+    void updateFinalCharacterStats();
+  }, [selectedRace, equippedItemIds]);
 
   const visibleStatRows = [
     { label: "Stamina", value: gearStatTotals.stamina },
@@ -146,6 +201,55 @@ function App() {
     { label: "Spell Power", value: gearStatTotals.spellPower },
     { label: "MP5", value: gearStatTotals.mp5 },
   ].filter((stat) => stat.value !== 0);
+
+  const visibleFinalStatRows = finalCharacterStats
+  ? [
+      { label: "Stamina", value: finalCharacterStats.finalStats.stamina },
+      { label: "Strength", value: finalCharacterStats.finalStats.strength },
+      { label: "Agility", value: finalCharacterStats.finalStats.agility },
+      { label: "Intellect", value: finalCharacterStats.finalStats.intellect },
+      { label: "Armor", value: finalCharacterStats.finalStats.armor },
+      {
+        label: "Defense Rating",
+        value: finalCharacterStats.finalStats.defenseRating,
+      },
+      {
+        label: "Dodge Rating",
+        value: finalCharacterStats.finalStats.dodgeRating,
+      },
+      {
+        label: "Parry Rating",
+        value: finalCharacterStats.finalStats.parryRating,
+      },
+      {
+        label: "Block Rating",
+        value: finalCharacterStats.finalStats.blockRating,
+      },
+      {
+        label: "Block Value",
+        value: finalCharacterStats.finalStats.blockValue,
+      },
+      {
+        label: "Resilience Rating",
+        value: finalCharacterStats.finalStats.resilienceRating,
+      },
+      { label: "Hit Rating", value: finalCharacterStats.finalStats.hitRating },
+      {
+        label: "Spell Hit Rating",
+        value: finalCharacterStats.finalStats.spellHitRating,
+      },
+      {
+        label: "Expertise Rating",
+        value: finalCharacterStats.finalStats.expertiseRating,
+      },
+      {
+        label: "Attack Power",
+        value: finalCharacterStats.finalStats.attackPower,
+      },
+      { label: "Spell Power", value: finalCharacterStats.finalStats.spellPower },
+      { label: "MP5", value: finalCharacterStats.finalStats.mp5 },
+    ].filter((stat) => stat.value !== 0)
+  : [];
 
   const selectedPhaseLabel =
   phaseOptions.find((option) => option.value === selectedPhase)?.label ??
@@ -325,10 +429,60 @@ function App() {
         </section>
 
         <section className="panel results-panel">
-          <h2>Results</h2>
-          <p className="muted">
-            Crit immune, crush immune, EHP, DTPS, and TPS calculations will go here.
-          </p>
+          <div className="panel-title-row">
+            <h2>Final Character Stats</h2>
+
+            <label className="race-filter">
+              <span>Race</span>
+              <select
+                value={selectedRace}
+                onChange={(event) =>
+                  setSelectedRace(event.target.value as CharacterRace)
+                }
+              >
+                {raceOptions.map((raceOption) => (
+                  <option key={raceOption.value} value={raceOption.value}>
+                    {raceOption.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {isCalculatingFinalStats && <p className="muted">Calculating...</p>}
+
+          {finalStatsError && <p className="error">{finalStatsError}</p>}
+
+          {finalCharacterStats && (
+            <>
+              <div className="summary-grid">
+                <div className="summary-card">
+                  <span>Health</span>
+                  <strong>{finalCharacterStats.health}</strong>
+                </div>
+
+                <div className="summary-card">
+                  <span>Mana</span>
+                  <strong>{finalCharacterStats.mana}</strong>
+                </div>
+              </div>
+
+              <div className="stat-list">
+                {visibleFinalStatRows.map((stat) => (
+                  <div className="stat-row" key={stat.label}>
+                    <span>{stat.label}</span>
+                    <strong>{stat.value}</strong>
+                  </div>
+                ))}
+              </div>
+
+              <p className="stat-note">
+                Final stats currently include base level 70 Protection Paladin stats
+                plus equipped gear. Gems, enchants, socket bonuses, talents, and buffs
+                will be added later.
+              </p>
+            </>
+          )}
         </section>
       </main>
 
