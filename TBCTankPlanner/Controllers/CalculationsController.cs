@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TbcTankPlanner.Domain.Calculations;
 using TbcTankPlanner.Services;
+using TbcTankPlanner.Domain.Calculations;
 
 namespace TbcTankPlanner.Controllers;
 
@@ -21,6 +21,16 @@ public class CalculationsController : ControllerBase
     )
     {
         var response = await _calculationService.CalculateGearStatsAsync(request);
+
+        return Ok(response);
+    }
+
+    [HttpPost("final-character-stats")]
+    public async Task<ActionResult<FinalCharacterStatsResponse>> CalculateFinalCharacterStats(
+    [FromBody] FinalCharacterStatsRequest request
+)
+    {
+        var response = await _calculationService.CalculateFinalCharacterStatsAsync(request);
 
         return Ok(response);
     }
