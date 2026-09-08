@@ -1,122 +1,209 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { getItems } from "./api";
+import type { ItemSlot, TbcItem } from "./types";
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+interface EquippedSlot {
+  slot: ItemSlot;
+  label: string;
+  item?: TbcItem;
 }
 
-export default App
+const initialGear: EquippedSlot[] = [
+  { slot: "Head", label: "Head" },
+  { slot: "Neck", label: "Neck" },
+  { slot: "Shoulders", label: "Shoulders" },
+  { slot: "Back", label: "Back" },
+  { slot: "Chest", label: "Chest" },
+  { slot: "Wrist", label: "Wrist" },
+  { slot: "Hands", label: "Hands" },
+  { slot: "Waist", label: "Waist" },
+  { slot: "Legs", label: "Legs" },
+  { slot: "Feet", label: "Feet" },
+  { slot: "Ring", label: "Ring 1" },
+  { slot: "Ring", label: "Ring 2" },
+  { slot: "Trinket", label: "Trinket 1" },
+  { slot: "Trinket", label: "Trinket 2" },
+  { slot: "MainHand", label: "Main Hand" },
+  { slot: "Shield", label: "Shield" },
+  { slot: "Libram", label: "Libram" },
+];
+
+function ItemIcon({ item }: { item?: TbcItem }) {
+  if (item?.iconUrl) {
+    return (
+      <img
+        className="item-icon"
+        src={item.iconUrl}
+        alt={`${item.name} icon`}
+      />
+    );
+  }
+
+  return <div className="item-icon item-icon-placeholder">?</div>;
+}
+
+function App() {
+  const [gear, setGear] = useState<EquippedSlot[]>(initialGear);
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
+  const [availableItems, setAvailableItems] = useState<TbcItem[]>([]);
+  const [isLoadingItems, setIsLoadingItems] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const selectedSlot =
+    selectedSlotIndex !== null ? gear[selectedSlotIndex] : undefined;
+
+  async function openItemPicker(slotIndex: number) {
+    const gearSlot = gear[slotIndex];
+
+    setSelectedSlotIndex(slotIndex);
+    setAvailableItems([]);
+    setError(null);
+    setIsLoadingItems(true);
+
+    try {
+      const items = await getItems("ProtectionPaladin", gearSlot.slot);
+      setAvailableItems(items);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load items.");
+    } finally {
+      setIsLoadingItems(false);
+    }
+  }
+
+  function equipItem(item: TbcItem) {
+    if (selectedSlotIndex === null) {
+      return;
+    }
+
+    setGear((currentGear) =>
+      currentGear.map((gearSlot, index) =>
+        index === selectedSlotIndex
+          ? {
+              ...gearSlot,
+              item,
+            }
+          : gearSlot
+      )
+    );
+
+    setSelectedSlotIndex(null);
+    setAvailableItems([]);
+  }
+
+  function closeModal() {
+    setSelectedSlotIndex(null);
+    setAvailableItems([]);
+    setError(null);
+  }
+
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <div>
+          <h1>TBC Tank Planner</h1>
+          <p>Protection Paladin gear optimizer</p>
+        </div>
+
+        <div className="class-tabs">
+          <button className="active">Protection Paladin</button>
+          <button disabled>Feral Druid</button>
+          <button disabled>Protection Warrior</button>
+        </div>
+      </header>
+
+      <main className="main-layout">
+        <section className="panel gear-panel">
+          <h2>Gear</h2>
+
+          <div className="gear-grid">
+            {gear.map((gearSlot, index) => (
+              <button
+                key={`${gearSlot.label}-${index}`}
+                className="gear-slot"
+                onClick={() => openItemPicker(index)}
+              >
+                <span className="gear-slot-label">{gearSlot.label}</span>
+
+                <span className="gear-slot-content">
+                  <ItemIcon item={gearSlot.item} />
+                  <span className="gear-slot-item">
+                    {gearSlot.item?.name ?? "Empty"}
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="panel stats-panel">
+          <h2>Character Stats</h2>
+          <p className="muted">
+            Stat totals will be added after the gear picker is working.
+          </p>
+        </section>
+
+        <section className="panel results-panel">
+          <h2>Results</h2>
+          <p className="muted">
+            Crit immune, crush immune, EHP, DTPS, and TPS calculations will go here.
+          </p>
+        </section>
+      </main>
+
+      {selectedSlot && (
+        <div className="modal-backdrop" onClick={closeModal}>
+          <div className="modal" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Select {selectedSlot.label}</h2>
+              <button onClick={closeModal}>X</button>
+            </div>
+
+            {isLoadingItems && <p>Loading items...</p>}
+
+            {error && <p className="error">{error}</p>}
+
+            {!isLoadingItems && !error && availableItems.length === 0 && (
+              <p>No items found for this slot yet.</p>
+            )}
+
+            <div className="item-list">
+              {availableItems.map((item) => (
+                <button
+                  key={item.id}
+                  className="item-row"
+                  onClick={() => equipItem(item)}
+                >
+                  <div>
+                    <div className="item-main">
+                      <ItemIcon item={item} />
+
+                      <div>
+                        <span className="item-name">{item.name}</span>
+                        <span className="item-details">
+                          {item.quality} • Phase {item.phase} • {item.source}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <span className="item-stats">
+                    {item.stats.stamina > 0 && `+${item.stats.stamina} Stam `}
+                    {item.stats.defenseRating > 0 &&
+                      `+${item.stats.defenseRating} Def `}
+                    {item.stats.dodgeRating > 0 &&
+                      `+${item.stats.dodgeRating} Dodge `}
+                    {item.stats.spellPower > 0 &&
+                      `+${item.stats.spellPower} SP`}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;

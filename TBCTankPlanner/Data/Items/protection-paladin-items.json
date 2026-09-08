@@ -2,6 +2,7 @@
   {
     "id": 23519,
     "name": "Felsteel Helm",
+    "iconUrl": null,
     "slot": "Head",
     "allowedClasses": [ "ProtectionPaladin", "ProtectionWarrior" ],
     "phase": 0,
@@ -20,6 +21,7 @@
   {
     "id": 32083,
     "name": "Faceguard of Determination",
+    "iconUrl": null,
     "slot": "Head",
     "allowedClasses": [ "ProtectionPaladin", "ProtectionWarrior" ],
     "phase": 0,
@@ -39,6 +41,7 @@
   {
     "id": 29061,
     "name": "Justicar Faceguard",
+    "iconUrl": null,
     "slot": "Head",
     "allowedClasses": [ "ProtectionPaladin" ],
     "phase": 1,
