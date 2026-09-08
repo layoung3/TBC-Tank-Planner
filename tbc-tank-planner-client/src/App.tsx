@@ -9,6 +9,21 @@ interface EquippedSlot {
   item?: TbcItem;
 }
 
+interface PhaseFilterOption {
+  label: string;
+  value?: number;
+}
+
+const phaseOptions: PhaseFilterOption[] = [
+  { label: "All TBC", value: undefined },
+  { label: "Pre-Raid / Phase 0", value: 0 },
+  { label: "Through Phase 1", value: 1 },
+  { label: "Through Phase 2", value: 2 },
+  { label: "Through Phase 3", value: 3 },
+  { label: "Through Phase 4", value: 4 },
+  { label: "Through Phase 5", value: 5 },
+];
+
 const initialGear: EquippedSlot[] = [
   { slot: "Head", label: "Head" },
   { slot: "Neck", label: "Neck" },
@@ -95,10 +110,12 @@ function ItemIcon({ item }: { item?: TbcItem }) {
 
 function App() {
   const [gear, setGear] = useState<EquippedSlot[]>(initialGear);
+  const [selectedPhase, setSelectedPhase] = useState<number | undefined>(undefined);
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const [availableItems, setAvailableItems] = useState<TbcItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
 
   const selectedSlot =
     selectedSlotIndex !== null ? gear[selectedSlotIndex] : undefined;
@@ -144,7 +161,7 @@ function App() {
     setIsLoadingItems(true);
 
     try {
-      const items = await getItems("ProtectionPaladin", gearSlot.slot);
+      const items = await getItems("ProtectionPaladin", gearSlot.slot, selectedPhase);
       setAvailableItems(items);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load items.");
@@ -196,7 +213,30 @@ function App() {
 
       <main className="main-layout">
         <section className="panel gear-panel">
-          <h2>Gear</h2>
+          <div className="panel-title-row">
+            <h2>Gear</h2>
+
+            <label className="phase-filter">
+              <span>Available Through</span>
+              <select
+                value={selectedPhase ?? "all"}
+                onChange={(event) => {
+                  const value = event.target.value;
+
+                  setSelectedPhase(value === "all" ? undefined : Number(value));
+                }}
+              >
+                {phaseOptions.map((phaseOption) => (
+                  <option
+                    key={phaseOption.label}
+                    value={phaseOption.value ?? "all"}
+                  >
+                    {phaseOption.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
 
           <div className="gear-grid">
             {gear.map((gearSlot, index) => (
@@ -251,7 +291,13 @@ function App() {
         <div className="modal-backdrop" onClick={closeModal}>
           <div className="modal" onClick={(event) => event.stopPropagation()}>
             <div className="modal-header">
-              <h2>Select {selectedSlot.label}</h2>
+              <div>
+                <h2>Select {selectedSlot.label}</h2>
+                <p className="modal-subtitle">
+                  Filter: {phaseOptions.find((option) => option.value === selectedPhase)?.label ?? "All TBC"}
+                </p>
+              </div>
+
               <button onClick={closeModal}>X</button>
             </div>
 

@@ -77,6 +77,40 @@ button {
   margin-top: 0;
 }
 
+.panel-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.panel-title-row h2 {
+  margin: 0;
+}
+
+.phase-filter {
+  display: grid;
+  gap: 4px;
+  color: #d1d5db;
+  font-size: 13px;
+}
+
+.phase-filter select {
+  border: 1px solid #374151;
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.modal-subtitle {
+  margin: 4px 0 0;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
 .gear-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
