@@ -3,6 +3,7 @@ import {
   calculateFinalCharacterStats,
   calculateGearStats,
   getEnchants,
+  getGems,
   getItems,
 } from "./api";
 import type {
@@ -10,8 +11,10 @@ import type {
   EquippedGearItem,
   FinalCharacterStatsResponse,
   ItemSlot,
+  SocketColor,
   StatBlock,
   TbcEnchant,
+  TbcGem,
   TbcItem,
 } from "./types";
 import "./App.css";
@@ -22,6 +25,7 @@ interface EquippedSlot {
   label: string;
   item?: TbcItem;
   enchant?: TbcEnchant;
+  gems?: Array<TbcGem | null>;
 }
 
 interface PhaseFilterOption {
@@ -134,6 +138,18 @@ function App() {
   const [isLoadingEnchants, setIsLoadingEnchants] = useState(false);
   const [enchantError, setEnchantError] = useState<string | null>(null);
   const [enchantSearchTerm, setEnchantSearchTerm] = useState("");
+
+  const [selectedGemSlotIndex, setSelectedGemSlotIndex] = useState<number | null>(
+    null
+  );
+  const [selectedGemSocketIndex, setSelectedGemSocketIndex] = useState<
+    number | null
+  >(null);
+  const [availableGems, setAvailableGems] = useState<TbcGem[]>([]);
+  const [isLoadingGems, setIsLoadingGems] = useState(false);
+  const [gemError, setGemError] = useState<string | null>(null);
+  const [gemSearchTerm, setGemSearchTerm] = useState("");
+  const [includeEpicGems, setIncludeEpicGems] = useState(true);
   
 
   const selectedSlot =
@@ -141,6 +157,16 @@ function App() {
 
   const selectedEnchantSlot =
     selectedEnchantSlotIndex !== null ? gear[selectedEnchantSlotIndex] : undefined;
+
+  const selectedGemSlot =
+    selectedGemSlotIndex !== null ? gear[selectedGemSlotIndex] : undefined;
+
+  const selectedGemSocketColor: SocketColor | undefined =
+    selectedGemSlot &&
+    selectedGemSocketIndex !== null &&
+    selectedGemSlot.item?.sockets[selectedGemSocketIndex]
+      ? selectedGemSlot.item.sockets[selectedGemSocketIndex]
+      : undefined;
 
   const equippedGear = useMemo<EquippedGearItem[]>(
     () =>
@@ -151,7 +177,7 @@ function App() {
           slot: gearSlot.slot,
           itemId: gearSlot.item?.id ?? null,
           enchantId: gearSlot.enchant?.id ?? null,
-          gemIds: [],
+          gemIds: gearSlot.gems?.map((gem) => gem?.id ?? null) ?? [],
         })),
     [gear]
   );
@@ -320,6 +346,29 @@ function App() {
     });
   }, [availableEnchants, enchantSearchTerm]);
 
+  const filteredAvailableGems = useMemo(() => {
+    const search = gemSearchTerm.trim().toLowerCase();
+
+    if (!search) {
+      return availableGems;
+    }
+
+    return availableGems.filter((gem) => {
+      const searchableText = [
+        gem.name,
+        gem.color,
+        gem.quality,
+        gem.source,
+        gem.phase.toString(),
+        gem.effectDescription ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(search);
+    });
+  }, [availableGems, gemSearchTerm]);
+
   async function loadItemsForSlot(slotIndex: number, phase?: number) {
     const gearSlot = gear[slotIndex];
 
@@ -355,6 +404,9 @@ function App() {
     if (selectedEnchantSlotIndex !== null) {
       void loadEnchantsForSlot(selectedEnchantSlotIndex, nextPhase);
     }
+    if (selectedGemSlotIndex !== null && selectedGemSocketIndex !== null) {
+      void loadGemsForSocket(selectedGemSlotIndex, selectedGemSocketIndex, nextPhase);
+    }
   }
 
   function equipItem(item: TbcItem) {
@@ -366,9 +418,10 @@ function App() {
       currentGear.map((gearSlot, index) =>
         index === selectedSlotIndex
           ? {
-              ...gearSlot,
-              item,
-            }
+            ...gearSlot,
+            item,
+            gems: item.sockets.map(() => null),
+          }
           : gearSlot
       )
     );
@@ -449,6 +502,112 @@ function App() {
     setEnchantSearchTerm("");
   }
 
+  async function loadGemsForSocket(
+    slotIndex: number,
+    socketIndex: number,
+    phase?: number,
+    includeEpics = includeEpicGems
+  ) {
+    const gearSlot = gear[slotIndex];
+    const socketColor = gearSlot.item?.sockets[socketIndex];
+
+    if (!socketColor) {
+      return;
+    }
+
+    setAvailableGems([]);
+    setGemError(null);
+    setIsLoadingGems(true);
+
+    try {
+      const gems = await getGems(socketColor, phase, false, includeEpics);
+      setAvailableGems(gems);
+    } catch (err) {
+      setGemError(err instanceof Error ? err.message : "Failed to load gems.");
+    } finally {
+      setIsLoadingGems(false);
+    }
+  }
+
+  async function openGemPicker(slotIndex: number, socketIndex: number) {
+    setSelectedGemSlotIndex(slotIndex);
+    setSelectedGemSocketIndex(socketIndex);
+    setGemSearchTerm("");
+
+    await loadGemsForSocket(slotIndex, socketIndex, selectedPhase);
+  }
+
+  function equipGem(gem: TbcGem) {
+    if (selectedGemSlotIndex === null || selectedGemSocketIndex === null) {
+      return;
+    }
+
+    setGear((currentGear) =>
+      currentGear.map((gearSlot, index) => {
+        if (index !== selectedGemSlotIndex || !gearSlot.item) {
+          return gearSlot;
+        }
+
+        const nextGems =
+          gearSlot.gems && gearSlot.gems.length === gearSlot.item.sockets.length
+            ? [...gearSlot.gems]
+            : gearSlot.item.sockets.map(() => null);
+
+        nextGems[selectedGemSocketIndex] = gem;
+
+        return {
+          ...gearSlot,
+          gems: nextGems,
+        };
+      })
+    );
+
+    closeGemModal();
+  }
+
+  function removeGem(slotIndex: number, socketIndex: number) {
+    setGear((currentGear) =>
+      currentGear.map((gearSlot, index) => {
+        if (index !== slotIndex || !gearSlot.item) {
+          return gearSlot;
+        }
+
+        const nextGems =
+          gearSlot.gems && gearSlot.gems.length === gearSlot.item.sockets.length
+            ? [...gearSlot.gems]
+            : gearSlot.item.sockets.map(() => null);
+
+        nextGems[socketIndex] = null;
+
+        return {
+          ...gearSlot,
+          gems: nextGems,
+        };
+      })
+    );
+  }
+
+  function closeGemModal() {
+    setSelectedGemSlotIndex(null);
+    setSelectedGemSocketIndex(null);
+    setAvailableGems([]);
+    setGemError(null);
+    setGemSearchTerm("");
+  }
+
+  function handleIncludeEpicGemsChange(checked: boolean) {
+    setIncludeEpicGems(checked);
+
+    if (selectedGemSlotIndex !== null && selectedGemSocketIndex !== null) {
+      void loadGemsForSocket(
+        selectedGemSlotIndex,
+        selectedGemSocketIndex,
+        selectedPhase,
+        checked
+      );
+    }
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -516,6 +675,34 @@ function App() {
                         Remove
                       </button>
                     )}
+                  </div>
+                )}
+                {gearSlot.item && gearSlot.item.sockets.length > 0 && (
+                  <div className="socket-list">
+                    {gearSlot.item.sockets.map((socketColor, socketIndex) => {
+                      const selectedGem = gearSlot.gems?.[socketIndex] ?? null;
+
+                      return (
+                        <div className="socket-row" key={`${gearSlot.slotKey}-${socketIndex}`}>
+                          <button
+                            className="gem-button"
+                            onClick={() => openGemPicker(index, socketIndex)}
+                          >
+                            <span className="socket-color">{socketColor}</span>
+                            <span>{selectedGem?.name ?? "Add Gem"}</span>
+                          </button>
+
+                          {selectedGem && (
+                            <button
+                              className="remove-gem-button"
+                              onClick={() => removeGem(index, socketIndex)}
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -879,6 +1066,100 @@ function App() {
                       `+${enchant.stats.blockValue} Block Value `}
                     {enchant.stats.spellPower > 0 &&
                       `+${enchant.stats.spellPower} SP`}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      {selectedGemSlot && selectedGemSocketColor && (
+        <div className="modal-backdrop" onClick={closeGemModal}>
+          <div className="modal" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2>Select Gem</h2>
+                <p className="modal-subtitle">
+                  {selectedGemSlot.label} • {selectedGemSocketColor} Socket • Filter:{" "}
+                  {selectedPhaseLabel}
+                </p>
+              </div>
+
+              <button onClick={closeGemModal}>X</button>
+            </div>
+
+            <div className="picker-toolbar">
+              <label className="picker-search">
+                <span>Search Gems</span>
+                <input
+                  value={gemSearchTerm}
+                  onChange={(event) => setGemSearchTerm(event.target.value)}
+                  placeholder="Search by name, color, source..."
+                />
+              </label>
+
+              <label className="phase-filter">
+                <span>Available Through</span>
+                <select
+                  value={selectedPhase ?? "all"}
+                  onChange={(event) => handlePhaseChange(event.target.value)}
+                >
+                  {phaseOptions.map((phaseOption) => (
+                    <option key={phaseOption.label} value={phaseOption.value ?? "all"}>
+                      {phaseOption.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label className="effect-toggle gem-toggle">
+              <input
+                type="checkbox"
+                checked={includeEpicGems}
+                onChange={(event) => handleIncludeEpicGemsChange(event.target.checked)}
+              />
+              <span>Include Epic Gems</span>
+            </label>
+
+            {isLoadingGems && <p>Loading gems...</p>}
+
+            {gemError && <p className="error">{gemError}</p>}
+
+            {!isLoadingGems && !gemError && filteredAvailableGems.length === 0 && (
+              <p className="muted">
+                {availableGems.length === 0
+                  ? "No gems found for this socket and phase yet."
+                  : "No gems match your search."}
+              </p>
+            )}
+
+            <div className="item-list">
+              {filteredAvailableGems.map((gem) => (
+                <button
+                  key={gem.id}
+                  className="item-row"
+                  onClick={() => equipGem(gem)}
+                >
+                  <div>
+                    <span className="item-name">{gem.name}</span>
+                    <span className="item-details">
+                      {gem.quality} • {gem.color} • Phase {gem.phase} • {gem.source}
+                    </span>
+                    {gem.effectDescription && (
+                      <span className="item-details">{gem.effectDescription}</span>
+                    )}
+                  </div>
+
+                  <span className="item-stats">
+                    {gem.stats.stamina > 0 && `+${gem.stats.stamina} Stam `}
+                    {gem.stats.defenseRating > 0 &&
+                      `+${gem.stats.defenseRating} Def `}
+                    {gem.stats.resilienceRating > 0 &&
+                      `+${gem.stats.resilienceRating} Resil `}
+                    {gem.stats.agility > 0 && `+${gem.stats.agility} Agi `}
+                    {gem.stats.dodgeRating > 0 && `+${gem.stats.dodgeRating} Dodge `}
+                    {gem.stats.spellPower > 0 && `+${gem.stats.spellPower} SP`}
                   </span>
                 </button>
               ))}

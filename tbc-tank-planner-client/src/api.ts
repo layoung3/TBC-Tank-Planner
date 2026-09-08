@@ -4,8 +4,10 @@ import type {
   FinalCharacterStatsResponse,
   GearStatsResponse,
   ItemSlot,
+  SocketColor,
   TankClass,
   TbcEnchant,
+  TbcGem,
   TbcItem,
 } from "./types";
 
@@ -57,6 +59,34 @@ export async function getEnchants(
 
   if (!response.ok) {
     throw new Error("Failed to load enchants.");
+  }
+
+  return response.json();
+}
+
+export async function getGems(
+  socketColor?: SocketColor,
+  phase?: number,
+  matchingOnly = false,
+  includeEpicGems = true
+): Promise<TbcGem[]> {
+  const params = new URLSearchParams();
+
+  if (socketColor) {
+    params.set("socketColor", socketColor);
+  }
+
+  if (phase !== undefined) {
+    params.set("phase", phase.toString());
+  }
+
+  params.set("matchingOnly", matchingOnly.toString());
+  params.set("includeEpicGems", includeEpicGems.toString());
+
+  const response = await fetch(`${API_BASE_URL}/api/gems?${params.toString()}`);
+
+  if (!response.ok) {
+    throw new Error("Failed to load gems.");
   }
 
   return response.json();

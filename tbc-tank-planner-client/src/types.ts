@@ -25,7 +25,10 @@ export type SocketColor =
   | "Yellow"
   | "Blue"
   | "Meta"
-  | "Prismatic";
+  | "Prismatic"
+  | "Orange"
+  | "Green"
+  | "Purple";
 
 export type CharacterRace =
   | "BloodElf"
@@ -73,7 +76,7 @@ export interface EquippedGearItem {
   slot: ItemSlot;
   itemId: number | null;
   enchantId: number | null;
-  gemIds: number[];
+  gemIds: Array<number | null>;
 }
 
 export interface TbcEnchant {
@@ -83,6 +86,21 @@ export interface TbcEnchant {
   phase: number;
   source: string;
   stats: StatBlock;
+  isCustom: boolean;
+}
+
+export interface TbcGem {
+  id: number;
+  name: string;
+  iconUrl?: string | null;
+  color: SocketColor;
+  matchesSocketColors: SocketColor[];
+  phase: number;
+  quality: string;
+  source: string;
+  stats: StatBlock;
+  effectDescription?: string | null;
+  metaRequirementDescription?: string | null;
   isCustom: boolean;
 }
 

@@ -462,3 +462,50 @@ button {
 .remove-enchant-button {
   color: #fca5a5;
 }
+
+.socket-list {
+  display: grid;
+  gap: 6px;
+}
+
+.socket-row {
+  display: flex;
+  gap: 6px;
+}
+
+.gem-button,
+.remove-gem-button {
+  border: 1px solid #374151;
+  background: #111827;
+  color: #d1d5db;
+  border-radius: 8px;
+  padding: 7px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.gem-button {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.gem-button:hover,
+.remove-gem-button:hover {
+  border-color: #facc15;
+  color: #f9fafb;
+}
+
+.remove-gem-button {
+  color: #fca5a5;
+}
+
+.socket-color {
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.gem-toggle {
+  margin-bottom: 16px;
+}
