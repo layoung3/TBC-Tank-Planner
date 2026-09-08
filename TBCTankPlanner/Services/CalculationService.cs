@@ -80,12 +80,15 @@ public class CalculationService
         AddStats(finalStats, baseStats.Stats);
         AddStats(finalStats, gearStatsResponse.GearStats);
 
+        var derivedTankStats = CalculateDerivedTankStats(finalStats);
+
         var response = new FinalCharacterStatsResponse
         {
             Race = request.Race,
             BaseStats = baseStats,
             GearStats = gearStatsResponse.GearStats,
             FinalStats = finalStats,
+            DerivedTankStats = derivedTankStats,
             Warnings = gearStatsResponse.Warnings
         };
 
@@ -168,5 +171,104 @@ public class CalculationService
 
             _ => throw new ArgumentOutOfRangeException(nameof(race), race, null)
         };
+    }
+
+    private static DerivedTankStats CalculateDerivedTankStats(StatBlock finalStats)
+    {
+        const decimal baseDefenseSkill = 350m;
+        const decimal defenseRatingPerSkill = 2.3654m;
+
+        const decimal critReductionTarget = 5.6m;
+        const decimal crushAvoidanceTarget = 102.4m;
+
+        const decimal resilienceRatingPerCritReduction = 39.4m;
+
+        const decimal dodgeRatingPerPercent = 18.9231m;
+        const decimal parryRatingPerPercent = 31.536m;
+        const decimal blockRatingPerPercent = 7.8846m;
+
+        // Starter baselines. These will be refined later with talents, race/class base values,
+        // buffs, Holy Shield, Redoubt, and gear-specific effects.
+        const decimal baseMissVsBoss = 5.0m;
+        const decimal baseDodge = 3.0m;
+        const decimal baseParry = 5.0m;
+        const decimal baseBlock = 5.0m;
+
+        var defenseSkillFromRating = Math.Floor(finalStats.DefenseRating / defenseRatingPerSkill);
+        var defenseSkill = baseDefenseSkill + defenseSkillFromRating;
+
+        var defenseBonusSkill = defenseSkill - baseDefenseSkill;
+
+        // Each defense skill above base gives 0.04% reduced chance to be crit.
+        // It also contributes to miss/dodge/parry/block table values.
+        var defenseAvoidanceBonusPercent = defenseBonusSkill * 0.04m;
+
+        var critReductionFromDefense = defenseBonusSkill * 0.04m;
+        var critReductionFromResilience =
+            finalStats.ResilienceRating / resilienceRatingPerCritReduction;
+
+        // Paladin has no passive crit-immunity talent like feral druid.
+        // Keep this field now because we will need it for druids later.
+        const decimal critReductionFromTalents = 0m;
+
+        var totalCritReduction =
+            critReductionFromDefense +
+            critReductionFromResilience +
+            critReductionFromTalents;
+
+        var missPercent = baseMissVsBoss + defenseAvoidanceBonusPercent;
+        var dodgePercent =
+            baseDodge +
+            defenseAvoidanceBonusPercent +
+            finalStats.DodgeRating / dodgeRatingPerPercent;
+
+        var parryPercent =
+            baseParry +
+            defenseAvoidanceBonusPercent +
+            finalStats.ParryRating / parryRatingPerPercent;
+
+        var blockPercent =
+            baseBlock +
+            defenseAvoidanceBonusPercent +
+            finalStats.BlockRating / blockRatingPerPercent;
+
+        var avoidanceWithBlock =
+            missPercent +
+            dodgePercent +
+            parryPercent +
+            blockPercent;
+
+        return new DerivedTankStats
+        {
+            DefenseSkill = (int)defenseSkill,
+
+            CritReductionTargetPercent = critReductionTarget,
+            CritReductionFromDefensePercent = RoundPercent(critReductionFromDefense),
+            CritReductionFromResiliencePercent = RoundPercent(critReductionFromResilience),
+            CritReductionFromTalentsPercent = RoundPercent(critReductionFromTalents),
+            TotalCritReductionPercent = RoundPercent(totalCritReduction),
+
+            CritReductionNeededPercent =
+                RoundPercent(Math.Max(0, critReductionTarget - totalCritReduction)),
+
+            IsCritImmune = totalCritReduction >= critReductionTarget,
+
+            MissPercent = RoundPercent(missPercent),
+            DodgePercent = RoundPercent(dodgePercent),
+            ParryPercent = RoundPercent(parryPercent),
+            BlockPercent = RoundPercent(blockPercent),
+
+            AvoidanceWithBlockPercent = RoundPercent(avoidanceWithBlock),
+            CrushAvoidanceTargetPercent = crushAvoidanceTarget,
+            CrushAvoidanceNeededPercent =
+                RoundPercent(Math.Max(0, crushAvoidanceTarget - avoidanceWithBlock)),
+
+            IsUncrushable = avoidanceWithBlock >= crushAvoidanceTarget
+        };
+    }
+
+    private static decimal RoundPercent(decimal value)
+    {
+        return Math.Round(value, 2, MidpointRounding.AwayFromZero);
     }
 }

@@ -16,5 +16,7 @@ public class FinalCharacterStatsResponse
 
     public StatBlock FinalStats { get; set; } = new();
 
+    public DerivedTankStats DerivedTankStats { get; set; } = new();
+
     public List<string> Warnings { get; set; } = [];
 }
