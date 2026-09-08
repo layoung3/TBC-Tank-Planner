@@ -111,6 +111,33 @@ button {
   font-size: 13px;
 }
 
+.picker-toolbar {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.picker-search {
+  display: grid;
+  gap: 4px;
+  color: #d1d5db;
+  font-size: 13px;
+}
+
+.picker-search input {
+  border: 1px solid #374151;
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.picker-search input::placeholder {
+  color: #6b7280;
+}
+
 .gear-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

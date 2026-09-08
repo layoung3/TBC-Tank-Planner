@@ -115,6 +115,7 @@ function App() {
   const [availableItems, setAvailableItems] = useState<TbcItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [itemSearchTerm, setItemSearchTerm] = useState("");
   
 
   const selectedSlot =
@@ -152,21 +153,62 @@ function App() {
     { label: "MP5", value: gearStatTotals.mp5 },
   ].filter((stat) => stat.value !== 0);
 
-  async function openItemPicker(slotIndex: number) {
+  const selectedPhaseLabel =
+  phaseOptions.find((option) => option.value === selectedPhase)?.label ??
+  "All TBC";
+
+  const filteredAvailableItems = useMemo(() => {
+    const search = itemSearchTerm.trim().toLowerCase();
+
+    if (!search) {
+      return availableItems;
+    }
+
+    return availableItems.filter((item) => {
+      const searchableText = [
+        item.name,
+        item.source,
+        item.quality,
+        item.phase.toString(),
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(search);
+    });
+  }, [availableItems, itemSearchTerm]);
+
+  async function loadItemsForSlot(slotIndex: number, phase?: number) {
     const gearSlot = gear[slotIndex];
 
-    setSelectedSlotIndex(slotIndex);
     setAvailableItems([]);
     setError(null);
     setIsLoadingItems(true);
 
     try {
-      const items = await getItems("ProtectionPaladin", gearSlot.slot, selectedPhase);
+      const items = await getItems("ProtectionPaladin", gearSlot.slot, phase);
       setAvailableItems(items);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load items.");
     } finally {
       setIsLoadingItems(false);
+    }
+  }
+
+  async function openItemPicker(slotIndex: number) {
+    setSelectedSlotIndex(slotIndex);
+    setItemSearchTerm("");
+
+    await loadItemsForSlot(slotIndex, selectedPhase);
+  }
+
+  function handlePhaseChange(value: string) {
+    const nextPhase = value === "all" ? undefined : Number(value);
+
+    setSelectedPhase(nextPhase);
+
+    if (selectedSlotIndex !== null) {
+      void loadItemsForSlot(selectedSlotIndex, nextPhase);
     }
   }
 
@@ -194,6 +236,7 @@ function App() {
     setSelectedSlotIndex(null);
     setAvailableItems([]);
     setError(null);
+    setItemSearchTerm("");
   }
 
   return (
@@ -220,11 +263,7 @@ function App() {
               <span>Available Through</span>
               <select
                 value={selectedPhase ?? "all"}
-                onChange={(event) => {
-                  const value = event.target.value;
-
-                  setSelectedPhase(value === "all" ? undefined : Number(value));
-                }}
+                onChange={(event) => handlePhaseChange(event.target.value)}
               >
                 {phaseOptions.map((phaseOption) => (
                   <option
@@ -294,23 +333,55 @@ function App() {
               <div>
                 <h2>Select {selectedSlot.label}</h2>
                 <p className="modal-subtitle">
-                  Filter: {phaseOptions.find((option) => option.value === selectedPhase)?.label ?? "All TBC"}
+                  Filter: {selectedPhaseLabel}
                 </p>
               </div>
 
               <button onClick={closeModal}>X</button>
             </div>
 
+            <div className="picker-toolbar">
+              <label className="picker-search">
+                <span>Search Items</span>
+                <input
+                  value={itemSearchTerm}
+                  onChange={(event) => setItemSearchTerm(event.target.value)}
+                  placeholder="Search by name, source, quality..."
+                />
+              </label>
+
+              <label className="phase-filter">
+                <span>Available Through</span>
+                <select
+                  value={selectedPhase ?? "all"}
+                  onChange={(event) => handlePhaseChange(event.target.value)}
+                >
+                  {phaseOptions.map((phaseOption) => (
+                    <option
+                      key={phaseOption.label}
+                      value={phaseOption.value ?? "all"}
+                    >
+                      {phaseOption.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
             {isLoadingItems && <p>Loading items...</p>}
 
             {error && <p className="error">{error}</p>}
 
-            {!isLoadingItems && !error && availableItems.length === 0 && (
-              <p>No items found for this slot yet.</p>
+            {!isLoadingItems && !error && filteredAvailableItems.length === 0 && (
+              <p className="muted">
+                {availableItems.length === 0
+                  ? "No items found for this slot and phase yet."
+                  : "No items match your search."}
+              </p>
             )}
 
             <div className="item-list">
-              {availableItems.map((item) => (
+              {filteredAvailableItems.map((item) => (
                 <button
                   key={item.id}
                   className="item-row"
