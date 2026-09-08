@@ -13,6 +13,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSingleton<ItemDataService>();
 builder.Services.AddSingleton<EnchantDataService>();
+builder.Services.AddSingleton<GemDataService>();
 builder.Services.AddSingleton<CalculationService>();
 
 builder.Services.AddCors(options =>

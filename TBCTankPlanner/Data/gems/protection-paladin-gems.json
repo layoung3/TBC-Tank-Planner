@@ -1,0 +1,105 @@
+[
+  {
+    "id": 25896,
+    "name": "Powerful Earthstorm Diamond",
+    "iconUrl": null,
+    "color": "Meta",
+    "matchesSocketColors": [ "Meta" ],
+    "phase": 0,
+    "quality": "Rare",
+    "source": "Jewelcrafting",
+    "stats": {
+      "stamina": 18
+    },
+    "effectDescription": "5% Stun Resist",
+    "metaRequirementDescription": "Requires at least 3 Blue gems",
+    "isCustom": false
+  },
+  {
+    "id": 24033,
+    "name": "Solid Star of Elune",
+    "iconUrl": null,
+    "color": "Blue",
+    "matchesSocketColors": [ "Blue" ],
+    "phase": 0,
+    "quality": "Rare",
+    "source": "Jewelcrafting",
+    "stats": {
+      "stamina": 12
+    },
+    "isCustom": false
+  },
+  {
+    "id": 32200,
+    "name": "Solid Empyrean Sapphire",
+    "iconUrl": null,
+    "color": "Blue",
+    "matchesSocketColors": [ "Blue" ],
+    "phase": 3,
+    "quality": "Epic",
+    "source": "Black Temple / Mount Hyjal",
+    "stats": {
+      "stamina": 15
+    },
+    "isCustom": false
+  },
+  {
+    "id": 24062,
+    "name": "Enduring Talasite",
+    "iconUrl": null,
+    "color": "Green",
+    "matchesSocketColors": [ "Yellow", "Blue" ],
+    "phase": 0,
+    "quality": "Rare",
+    "source": "Jewelcrafting",
+    "stats": {
+      "defenseRating": 4,
+      "stamina": 6
+    },
+    "isCustom": false
+  },
+  {
+    "id": 33782,
+    "name": "Steady Talasite",
+    "iconUrl": null,
+    "color": "Green",
+    "matchesSocketColors": [ "Yellow", "Blue" ],
+    "phase": 0,
+    "quality": "Rare",
+    "source": "Halaa / Jewelcrafting",
+    "stats": {
+      "resilienceRating": 4,
+      "stamina": 6
+    },
+    "isCustom": false
+  },
+  {
+    "id": 24052,
+    "name": "Thick Dawnstone",
+    "iconUrl": null,
+    "color": "Yellow",
+    "matchesSocketColors": [ "Yellow" ],
+    "phase": 0,
+    "quality": "Rare",
+    "source": "Jewelcrafting",
+    "stats": {
+      "defenseRating": 8
+    },
+    "isCustom": false
+  },
+  {
+    "id": 24055,
+    "name": "Shifting Nightseye",
+    "iconUrl": null,
+    "color": "Purple",
+    "matchesSocketColors": [ "Red", "Blue" ],
+    "phase": 0,
+    "quality": "Rare",
+    "source": "Jewelcrafting",
+    "stats": {
+      "agility": 4,
+      "stamina": 6
+    },
+    "isCustom": false
+  }
+]

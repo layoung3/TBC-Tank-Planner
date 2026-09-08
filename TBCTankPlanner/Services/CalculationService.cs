@@ -1,6 +1,8 @@
 ﻿using TbcTankPlanner.Domain.Calculations;
 using TbcTankPlanner.Domain.Stats;
 using TbcTankPlanner.Domain.Characters;
+using TbcTankPlanner.Domain.Gems;
+using TbcTankPlanner.Domain.Items;
 
 namespace TbcTankPlanner.Services;
 
@@ -8,14 +10,17 @@ public class CalculationService
 {
     private readonly ItemDataService _itemDataService;
     private readonly EnchantDataService _enchantDataService;
+    private readonly GemDataService _gemDataService;
 
     public CalculationService(
     ItemDataService itemDataService,
-    EnchantDataService enchantDataService
+    EnchantDataService enchantDataService,
+    GemDataService gemDataService
     )
     {
         _itemDataService = itemDataService;
         _enchantDataService = enchantDataService;
+        _gemDataService = gemDataService;
     }
 
     public async Task<GearStatsResponse> CalculateGearStatsAsync(GearStatsRequest request)
@@ -26,16 +31,22 @@ public class CalculationService
         var allEnchants = await _enchantDataService.GetAllEnchantsAsync();
         var enchantLookup = allEnchants.ToDictionary(enchant => enchant.Id);
 
+        var allGems = await _gemDataService.GetAllGemsAsync();
+        var gemLookup = allGems.ToDictionary(gem => gem.Id);
+
         var response = new GearStatsResponse();
 
         if (request.EquippedGear.Count > 0)
         {
             foreach (var gearItem in request.EquippedGear)
             {
+                TbcItem? equippedItem = null;
+
                 if (gearItem.ItemId.HasValue)
                 {
                     if (itemLookup.TryGetValue(gearItem.ItemId.Value, out var item))
                     {
+                        equippedItem = item;
                         AddStats(response.GearStats, item.Stats);
                     }
                     else
@@ -53,22 +64,25 @@ public class CalculationService
                             response.Warnings.Add(
                                 $"{enchant.Name} cannot be applied to {gearItem.Slot}."
                             );
-                            continue;
                         }
-
-                        AddStats(response.GearStats, enchant.Stats);
+                        else
+                        {
+                            AddStats(response.GearStats, enchant.Stats);
+                        }
                     }
                     else
                     {
                         response.Warnings.Add($"Enchant ID {gearItem.EnchantId.Value} was not found.");
                     }
                 }
+
+                ApplyGemStats(response, gearItem, equippedItem, gemLookup);
             }
 
             return response;
         }
 
-        // Legacy support for old React request shape.
+        // Legacy support for old request shape.
         foreach (var itemId in request.EquippedItemIds)
         {
             if (!itemLookup.TryGetValue(itemId, out var item))
@@ -431,6 +445,74 @@ public class CalculationService
 
             Mp5 = stats.Mp5
         };
+    }
+
+    private static void ApplyGemStats(
+    GearStatsResponse response,
+    EquippedGearItem gearItem,
+    TbcItem? equippedItem,
+    Dictionary<int, TbcGem> gemLookup
+)
+    {
+        if (gearItem.GemIds.Count == 0)
+        {
+            return;
+        }
+
+        if (equippedItem is null)
+        {
+            response.Warnings.Add(
+                $"Gems could not be applied to {gearItem.SlotKey} because no valid item is equipped."
+            );
+            return;
+        }
+
+        if (equippedItem.Sockets.Count == 0)
+        {
+            response.Warnings.Add($"{equippedItem.Name} does not have gem sockets.");
+            return;
+        }
+
+        if (gearItem.GemIds.Count > equippedItem.Sockets.Count)
+        {
+            response.Warnings.Add(
+                $"{equippedItem.Name} has {equippedItem.Sockets.Count} sockets, but {gearItem.GemIds.Count} gems were provided."
+            );
+        }
+
+        var gemCountToApply = Math.Min(gearItem.GemIds.Count, equippedItem.Sockets.Count);
+
+        for (var index = 0; index < gemCountToApply; index++)
+        {
+            var gemId = gearItem.GemIds[index];
+            var socketColor = equippedItem.Sockets[index];
+
+            if (!gemLookup.TryGetValue(gemId, out var gem))
+            {
+                response.Warnings.Add($"Gem ID {gemId} was not found.");
+                continue;
+            }
+
+            if (!CanGemFitSocket(gem, socketColor))
+            {
+                response.Warnings.Add(
+                    $"{gem.Name} cannot be placed into a {socketColor} socket on {equippedItem.Name}."
+                );
+                continue;
+            }
+
+            AddStats(response.GearStats, gem.Stats);
+        }
+    }
+
+    private static bool CanGemFitSocket(TbcGem gem, SocketColor socketColor)
+    {
+        if (socketColor == SocketColor.Meta)
+        {
+            return gem.Color == SocketColor.Meta;
+        }
+
+        return gem.Color != SocketColor.Meta;
     }
 
     private static int ApplyMultiplier(int value, decimal multiplier)

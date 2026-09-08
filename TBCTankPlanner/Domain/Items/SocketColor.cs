@@ -6,5 +6,10 @@ public enum SocketColor
     Yellow,
     Blue,
     Meta,
-    Prismatic
+    Prismatic,
+
+    // Hybrid gem colors
+    Orange,
+    Green,
+    Purple
 }
