@@ -6,6 +6,7 @@ import {
 } from "./api";
 import type {
   CharacterRace,
+  EquippedGearItem,
   FinalCharacterStatsResponse,
   ItemSlot,
   StatBlock,
@@ -14,6 +15,7 @@ import type {
 import "./App.css";
 
 interface EquippedSlot {
+  slotKey: string;
   slot: ItemSlot;
   label: string;
   item?: TbcItem;
@@ -47,23 +49,23 @@ const raceOptions: RaceOption[] = [
 ];
 
 const initialGear: EquippedSlot[] = [
-  { slot: "Head", label: "Head" },
-  { slot: "Neck", label: "Neck" },
-  { slot: "Shoulders", label: "Shoulders" },
-  { slot: "Back", label: "Back" },
-  { slot: "Chest", label: "Chest" },
-  { slot: "Wrist", label: "Wrist" },
-  { slot: "Hands", label: "Hands" },
-  { slot: "Waist", label: "Waist" },
-  { slot: "Legs", label: "Legs" },
-  { slot: "Feet", label: "Feet" },
-  { slot: "Ring", label: "Ring 1" },
-  { slot: "Ring", label: "Ring 2" },
-  { slot: "Trinket", label: "Trinket 1" },
-  { slot: "Trinket", label: "Trinket 2" },
-  { slot: "MainHand", label: "Main Hand" },
-  { slot: "Shield", label: "Shield" },
-  { slot: "Libram", label: "Libram" },
+  { slotKey: "Head", slot: "Head", label: "Head" },
+  { slotKey: "Neck", slot: "Neck", label: "Neck" },
+  { slotKey: "Shoulders", slot: "Shoulders", label: "Shoulders" },
+  { slotKey: "Back", slot: "Back", label: "Back" },
+  { slotKey: "Chest", slot: "Chest", label: "Chest" },
+  { slotKey: "Wrist", slot: "Wrist", label: "Wrist" },
+  { slotKey: "Hands", slot: "Hands", label: "Hands" },
+  { slotKey: "Waist", slot: "Waist", label: "Waist" },
+  { slotKey: "Legs", slot: "Legs", label: "Legs" },
+  { slotKey: "Feet", slot: "Feet", label: "Feet" },
+  { slotKey: "Ring1", slot: "Ring", label: "Ring 1" },
+  { slotKey: "Ring2", slot: "Ring", label: "Ring 2" },
+  { slotKey: "Trinket1", slot: "Trinket", label: "Trinket 1" },
+  { slotKey: "Trinket2", slot: "Trinket", label: "Trinket 2" },
+  { slotKey: "MainHand", slot: "MainHand", label: "Main Hand" },
+  { slotKey: "Shield", slot: "Shield", label: "Shield" },
+  { slotKey: "Libram", slot: "Libram", label: "Libram" },
 ];
 
 function createEmptyStats(): StatBlock {
@@ -128,17 +130,23 @@ function App() {
   const selectedSlot =
     selectedSlotIndex !== null ? gear[selectedSlotIndex] : undefined;
 
-  const equippedItemIds = useMemo(
+  const equippedGear = useMemo<EquippedGearItem[]>(
     () =>
       gear
-        .map((gearSlot) => gearSlot.item?.id)
-        .filter((itemId): itemId is number => itemId !== undefined),
+        .filter((gearSlot) => gearSlot.item)
+        .map((gearSlot) => ({
+          slotKey: gearSlot.slotKey,
+          slot: gearSlot.slot,
+          itemId: gearSlot.item?.id ?? null,
+          enchantId: null,
+          gemIds: [],
+        })),
     [gear]
   );
 
   useEffect(() => {
     async function updateGearStats() {
-      if (equippedItemIds.length === 0) {
+      if (equippedGear.length === 0) {
         setGearStatTotals(createEmptyStats());
         setCalculationWarnings([]);
         return;
@@ -147,7 +155,7 @@ function App() {
       try {
         setIsCalculatingStats(true);
 
-        const result = await calculateGearStats(equippedItemIds);
+        const result = await calculateGearStats(equippedGear);
 
         setGearStatTotals(result.gearStats);
         setCalculationWarnings(result.warnings);
@@ -159,7 +167,7 @@ function App() {
     }
 
     void updateGearStats();
-  }, [equippedItemIds]);
+  }, [equippedGear]);
 
   useEffect(() => {
     async function updateFinalCharacterStats() {
@@ -169,7 +177,7 @@ function App() {
 
         const result = await calculateFinalCharacterStats(
           selectedRace,
-          equippedItemIds,
+          equippedGear,
           includeHolyShield
         );
 
@@ -182,7 +190,7 @@ function App() {
     }
 
     void updateFinalCharacterStats();
-  }, [selectedRace, equippedItemIds, includeHolyShield]);
+  }, [selectedRace, equippedGear, includeHolyShield]);
 
   const visibleStatRows = [
     { label: "Stamina", value: gearStatTotals.stamina },

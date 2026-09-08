@@ -1,5 +1,6 @@
 import type {
   CharacterRace,
+  EquippedGearItem,
   FinalCharacterStatsResponse,
   GearStatsResponse,
   ItemSlot,
@@ -36,7 +37,7 @@ export async function getItems(
 }
 
 export async function calculateGearStats(
-  equippedItemIds: number[]
+  equippedGear: EquippedGearItem[]
 ): Promise<GearStatsResponse> {
   const response = await fetch(`${API_BASE_URL}/api/calculations/gear-stats`, {
     method: "POST",
@@ -44,7 +45,7 @@ export async function calculateGearStats(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      equippedItemIds,
+      equippedGear,
     }),
   });
 
@@ -57,21 +58,21 @@ export async function calculateGearStats(
 
 export async function calculateFinalCharacterStats(
   race: CharacterRace,
-  equippedItemIds: number[],
+  equippedGear: EquippedGearItem[],
   includeHolyShield: boolean
 ): Promise<FinalCharacterStatsResponse> {
   const response = await fetch(
     `${API_BASE_URL}/api/calculations/final-character-stats`,
     {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            race,
-            equippedItemIds,
-            includeHolyShield,
-        }),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        race,
+        equippedGear,
+        includeHolyShield,
+      }),
     }
   );
 

@@ -68,8 +68,16 @@ export interface TbcItem {
   isCustom: boolean;
 }
 
+export interface EquippedGearItem {
+  slotKey: string;
+  slot: ItemSlot;
+  itemId: number | null;
+  enchantId: number | null;
+  gemIds: number[];
+}
+
 export interface GearStatsRequest {
-  equippedItemIds: number[];
+  equippedGear: EquippedGearItem[];
 }
 
 export interface GearStatsResponse {
@@ -86,7 +94,7 @@ export interface CharacterBaseStats {
 
 export interface FinalCharacterStatsRequest {
   race: CharacterRace;
-  equippedItemIds: number[];
+  equippedGear: EquippedGearItem[];
   includeHolyShield: boolean;
 }
 
