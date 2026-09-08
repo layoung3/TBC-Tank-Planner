@@ -448,11 +448,11 @@ public class CalculationService
     }
 
     private static void ApplyGemStats(
-    GearStatsResponse response,
-    EquippedGearItem gearItem,
-    TbcItem? equippedItem,
-    Dictionary<int, TbcGem> gemLookup
-)
+        GearStatsResponse response,
+        EquippedGearItem gearItem,
+        TbcItem? equippedItem,
+        Dictionary<int, TbcGem> gemLookup
+    )
     {
         if (gearItem.GemIds.Count == 0)
         {
@@ -482,6 +482,9 @@ public class CalculationService
 
         var gemCountToApply = Math.Min(gearItem.GemIds.Count, equippedItem.Sockets.Count);
 
+        var socketBonusIsActive = equippedItem.Sockets.Count > 0 &&
+                                  gearItem.GemIds.Count >= equippedItem.Sockets.Count;
+
         for (var index = 0; index < gemCountToApply; index++)
         {
             var gemId = gearItem.GemIds[index];
@@ -489,12 +492,14 @@ public class CalculationService
 
             if (!gemId.HasValue)
             {
+                socketBonusIsActive = false;
                 continue;
             }
 
             if (!gemLookup.TryGetValue(gemId.Value, out var gem))
             {
                 response.Warnings.Add($"Gem ID {gemId.Value} was not found.");
+                socketBonusIsActive = false;
                 continue;
             }
 
@@ -503,10 +508,21 @@ public class CalculationService
                 response.Warnings.Add(
                     $"{gem.Name} cannot be placed into a {socketColor} socket on {equippedItem.Name}."
                 );
+                socketBonusIsActive = false;
                 continue;
             }
 
             AddStats(response.GearStats, gem.Stats);
+
+            if (!DoesGemMatchSocket(gem, socketColor))
+            {
+                socketBonusIsActive = false;
+            }
+        }
+
+        if (socketBonusIsActive)
+        {
+            AddStats(response.GearStats, equippedItem.SocketBonus);
         }
     }
 
@@ -518,6 +534,16 @@ public class CalculationService
         }
 
         return gem.Color != SocketColor.Meta;
+    }
+
+    private static bool DoesGemMatchSocket(TbcGem gem, SocketColor socketColor)
+    {
+        if (socketColor == SocketColor.Meta)
+        {
+            return gem.Color == SocketColor.Meta;
+        }
+
+        return gem.MatchesSocketColors.Contains(socketColor);
     }
 
     private static int ApplyMultiplier(int value, decimal multiplier)
