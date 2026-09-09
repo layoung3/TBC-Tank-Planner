@@ -82,6 +82,11 @@ function createEmptyStats(): StatBlock {
     agility: 0,
     intellect: 0,
     armor: 0,
+    arcaneResistance: 0,
+    fireResistance: 0,
+    frostResistance: 0,
+    natureResistance: 0,
+    shadowResistance: 0,
     defenseRating: 0,
     dodgeRating: 0,
     parryRating: 0,
@@ -118,6 +123,11 @@ function formatStatSummary(stats: StatBlock): string {
     ["Agi", stats.agility],
     ["Int", stats.intellect],
     ["Armor", stats.armor],
+    ["Arcane Res", stats.arcaneResistance],
+    ["Fire Res", stats.fireResistance],
+    ["Frost Res", stats.frostResistance],
+    ["Nature Res", stats.natureResistance],
+    ["Shadow Res", stats.shadowResistance],
     ["Def", stats.defenseRating],
     ["Dodge", stats.dodgeRating],
     ["Parry", stats.parryRating],
@@ -409,6 +419,11 @@ function App() {
     { label: "Agility", value: gearStatTotals.agility },
     { label: "Intellect", value: gearStatTotals.intellect },
     { label: "Armor", value: gearStatTotals.armor },
+    { label: "Arcane Resistance", value: gearStatTotals.arcaneResistance },
+    { label: "Fire Resistance", value: gearStatTotals.fireResistance },
+    { label: "Frost Resistance", value: gearStatTotals.frostResistance },
+    { label: "Nature Resistance", value: gearStatTotals.natureResistance },
+    { label: "Shadow Resistance", value: gearStatTotals.shadowResistance },
     { label: "Defense Rating", value: gearStatTotals.defenseRating },
     { label: "Dodge Rating", value: gearStatTotals.dodgeRating },
     { label: "Parry Rating", value: gearStatTotals.parryRating },
@@ -430,6 +445,26 @@ function App() {
       { label: "Agility", value: finalCharacterStats.finalStats.agility },
       { label: "Intellect", value: finalCharacterStats.finalStats.intellect },
       { label: "Armor", value: finalCharacterStats.finalStats.armor },
+      {
+        label: "Arcane Resistance",
+        value: finalCharacterStats.finalStats.arcaneResistance,
+      },
+      {
+        label: "Fire Resistance",
+        value: finalCharacterStats.finalStats.fireResistance,
+      },
+      {
+        label: "Frost Resistance",
+        value: finalCharacterStats.finalStats.frostResistance,
+      },
+      {
+        label: "Nature Resistance",
+        value: finalCharacterStats.finalStats.natureResistance,
+      },
+      {
+        label: "Shadow Resistance",
+        value: finalCharacterStats.finalStats.shadowResistance,
+      },
       {
         label: "Defense Rating",
         value: finalCharacterStats.finalStats.defenseRating,
@@ -1311,6 +1346,11 @@ function App() {
                       `+${item.stats.dodgeRating} Dodge `}
                     {item.stats.spellPower > 0 &&
                       `+${item.stats.spellPower} SP`}
+                    {item.stats.fireResistance > 0 && `+${item.stats.fireResistance} Fire Res `}
+                    {item.stats.frostResistance > 0 && `+${item.stats.frostResistance} Frost Res `}
+                    {item.stats.natureResistance > 0 && `+${item.stats.natureResistance} Nature Res `}
+                    {item.stats.shadowResistance > 0 && `+${item.stats.shadowResistance} Shadow Res `}
+                    {item.stats.arcaneResistance > 0 && `+${item.stats.arcaneResistance} Arcane Res `}
                   </span>
                 </button>
               ))}
@@ -1395,6 +1435,11 @@ function App() {
                       `+${enchant.stats.blockValue} Block Value `}
                     {enchant.stats.spellPower > 0 &&
                       `+${enchant.stats.spellPower} SP`}
+                    {enchant.stats.fireResistance > 0 && `+${enchant.stats.fireResistance} Fire Res `}
+                    {enchant.stats.frostResistance > 0 && `+${enchant.stats.frostResistance} Frost Res `}
+                    {enchant.stats.natureResistance > 0 && `+${enchant.stats.natureResistance} Nature Res `}
+                    {enchant.stats.shadowResistance > 0 && `+${enchant.stats.shadowResistance} Shadow Res `}
+                    {enchant.stats.arcaneResistance > 0 && `+${enchant.stats.arcaneResistance} Arcane Res `}
                   </span>
                 </button>
               ))}
@@ -1492,6 +1537,11 @@ function App() {
                     {gem.stats.agility > 0 && `+${gem.stats.agility} Agi `}
                     {gem.stats.dodgeRating > 0 && `+${gem.stats.dodgeRating} Dodge `}
                     {gem.stats.spellPower > 0 && `+${gem.stats.spellPower} SP`}
+                    {gem.stats.fireResistance > 0 && `+${gem.stats.fireResistance} Fire Res `}
+                    {gem.stats.frostResistance > 0 && `+${gem.stats.frostResistance} Frost Res `}
+                    {gem.stats.natureResistance > 0 && `+${gem.stats.natureResistance} Nature Res `}
+                    {gem.stats.shadowResistance > 0 && `+${gem.stats.shadowResistance} Shadow Res `}
+                    {gem.stats.arcaneResistance > 0 && `+${gem.stats.arcaneResistance} Arcane Res `}
                   </span>
                 </button>
               ))}

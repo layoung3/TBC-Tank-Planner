@@ -166,7 +166,8 @@
       "armor": 3711,
       "blockValue": 83,
       "stamina": 33,
-      "defenseRating": 24
+      "defenseRating": 24,
+      "fireResistance": 25
     },
     "sockets": [],
     "socketBonus": {},

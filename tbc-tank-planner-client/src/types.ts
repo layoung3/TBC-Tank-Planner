@@ -42,6 +42,11 @@ export interface StatBlock {
   agility: number;
   intellect: number;
   armor: number;
+  arcaneResistance: number;
+  fireResistance: number;
+  frostResistance: number;
+  natureResistance: number;
+  shadowResistance: number;
   defenseRating: number;
   dodgeRating: number;
   parryRating: number;

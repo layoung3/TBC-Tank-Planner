@@ -9,6 +9,12 @@ public class StatBlock
 
     public int Armor { get; set; }
 
+    public int ArcaneResistance { get; set; }
+    public int FireResistance { get; set; }
+    public int FrostResistance { get; set; }
+    public int NatureResistance { get; set; }
+    public int ShadowResistance { get; set; }
+
     public int DefenseRating { get; set; }
     public int DodgeRating { get; set; }
     public int ParryRating { get; set; }

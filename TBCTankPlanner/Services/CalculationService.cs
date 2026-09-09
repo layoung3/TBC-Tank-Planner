@@ -117,6 +117,12 @@ public class CalculationService
 
         total.Armor += stats.Armor;
 
+        total.ArcaneResistance += stats.ArcaneResistance;
+        total.FireResistance += stats.FireResistance;
+        total.FrostResistance += stats.FrostResistance;
+        total.NatureResistance += stats.NatureResistance;
+        total.ShadowResistance += stats.ShadowResistance;
+
         total.DefenseRating += stats.DefenseRating;
         total.DodgeRating += stats.DodgeRating;
         total.ParryRating += stats.ParryRating;
@@ -365,10 +371,10 @@ public class CalculationService
     }
 
     private static ConvertedCharacterStats ApplyStatConversions(
-    CharacterBaseStats baseStats,
-    StatBlock rawStats,
-    StatConversionModifiers modifiers
-)
+        CharacterBaseStats baseStats,
+        StatBlock rawStats,
+        StatConversionModifiers modifiers
+    )
     {
         var modifiedStats = ApplyPrimaryStatMultipliers(rawStats, modifiers);
 
@@ -445,6 +451,12 @@ public class CalculationService
             Intellect = ApplyMultiplier(stats.Intellect, modifiers.IntellectMultiplier),
 
             Armor = stats.Armor,
+
+            ArcaneResistance = stats.ArcaneResistance,
+            FireResistance = stats.FireResistance,
+            FrostResistance = stats.FrostResistance,
+            NatureResistance = stats.NatureResistance,
+            ShadowResistance = stats.ShadowResistance,
 
             DefenseRating = stats.DefenseRating,
             DodgeRating = stats.DodgeRating,
@@ -700,10 +712,10 @@ public class CalculationService
     }
 
     private static PhysicalMitigationStats CalculatePhysicalMitigationStats(
-    int health,
-    StatBlock finalStats,
-    int attackerLevel
-)
+        int health,
+        StatBlock finalStats,
+        int attackerLevel
+    )
     {
         const decimal maxArmorDamageReductionPercent = 75m;
 
