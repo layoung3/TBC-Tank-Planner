@@ -6,6 +6,8 @@ public class TalentDefinition
 
     public string Name { get; set; } = "";
 
+    public string? IconUrl { get; set; }
+
     public string TreeKey { get; set; } = "";
 
     public int Row { get; set; }

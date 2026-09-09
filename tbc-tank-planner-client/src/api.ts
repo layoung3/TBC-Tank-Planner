@@ -1,6 +1,8 @@
 import type {
   CharacterRace,
   EquippedGearItem,
+  CharacterTalentBuild,
+  TalentTreeDefinition,
   FinalCharacterStatsResponse,
   GearStatsResponse,
   ItemSlot,
@@ -34,6 +36,24 @@ export async function getItems(
 
   if (!response.ok) {
     throw new Error("Failed to load items.");
+  }
+
+  return response.json();
+}
+
+export async function getTalents(
+  tankClass: TankClass
+): Promise<TalentTreeDefinition[]> {
+  const params = new URLSearchParams();
+
+  params.set("tankClass", tankClass);
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/talents?${params.toString()}`
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to load talents.");
   }
 
   return response.json();
@@ -115,7 +135,8 @@ export async function calculateGearStats(
 export async function calculateFinalCharacterStats(
   race: CharacterRace,
   equippedGear: EquippedGearItem[],
-  includeHolyShield: boolean
+  includeHolyShield: boolean,
+  talentBuild: CharacterTalentBuild
 ): Promise<FinalCharacterStatsResponse> {
   const response = await fetch(
     `${API_BASE_URL}/api/calculations/final-character-stats`,
@@ -128,6 +149,7 @@ export async function calculateFinalCharacterStats(
         race,
         equippedGear,
         includeHolyShield,
+        talentBuild,
       }),
     }
   );

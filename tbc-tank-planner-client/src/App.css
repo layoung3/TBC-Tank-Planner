@@ -981,6 +981,250 @@ button {
   line-height: 1.35;
 }
 
+.talents-panel {
+  grid-column: 1 / -1;
+}
+
+.secondary-button {
+  border: 1px solid #374151;
+  background: #111827;
+  color: #d1d5db;
+  border-radius: 8px;
+  padding: 7px 10px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.secondary-button:hover {
+  border-color: #facc15;
+  color: #f9fafb;
+}
+
+.talent-tree-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.talent-tree-card {
+  border: 1px solid #374151;
+  background: #111827;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.talent-tree-card h3 {
+  margin: 0 0 10px;
+  color: #f9fafb;
+  font-size: 15px;
+}
+
+.talent-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.talent-card {
+  border: 1px solid #374151;
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.talent-card-active {
+  border-color: #facc15;
+}
+
+.talent-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.talent-card-header strong {
+  color: #f9fafb;
+  font-size: 13px;
+}
+
+.talent-card-header span {
+  color: #bbf7d0;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.talent-card p {
+  min-height: 32px;
+  margin: 6px 0;
+  color: #9ca3af;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.talent-rank-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.talent-rank-actions button {
+  border: 1px solid #374151;
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 6px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+.talent-rank-actions button:hover {
+  border-color: #facc15;
+}
+
+.build-panel {
+  min-width: 0;
+}
+
+.build-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #374151;
+  padding-bottom: 10px;
+}
+
+.build-tabs button {
+  border: 1px solid #374151;
+  background: #111827;
+  color: #d1d5db;
+  border-radius: 999px;
+  padding: 7px 11px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.build-tabs button.active {
+  border-color: #facc15;
+  color: #f9fafb;
+}
+
+.build-tabs button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.talent-tab-content {
+  display: grid;
+  gap: 12px;
+}
+
+.talent-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.talent-toolbar h2 {
+  margin: 0 0 4px;
+}
+
+.wow-talent-tree-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.wow-talent-tree {
+  border: 1px solid #374151;
+  background: #111827;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.wow-talent-tree h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.wow-talent-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 42px);
+  grid-template-rows: repeat(11, 42px);
+  gap: 7px;
+  justify-content: center;
+}
+
+.wow-talent-icon {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #374151;
+  background: #030712;
+  color: #9ca3af;
+  border-radius: 8px;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.wow-talent-icon:hover {
+  border-color: #facc15;
+}
+
+.wow-talent-icon-active {
+  border-color: #facc15;
+  color: #f9fafb;
+}
+
+.wow-talent-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wow-talent-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.wow-talent-rank {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  min-width: 22px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 80%);
+  color: #bbf7d0;
+  font-size: 10px;
+  line-height: 1;
+  padding: 3px 4px;
+}
+
+.placeholder-panel {
+  min-height: 260px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+@media (max-width: 1100px) {
+  .wow-talent-tree-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1100px) {
+  .talent-tree-list {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 1500px) {
   .main-layout {
     grid-template-columns:

@@ -94,6 +94,36 @@ export interface ActiveItemSetBonus {
   effectKeys: string[];
 }
 
+export interface TalentRankEffect {
+  rank: number;
+  description: string;
+}
+
+export interface TalentDefinition {
+  key: string;
+  name: string;
+  iconUrl?: string | null;
+  treeKey: string;
+  row: number;
+  column: number;
+  maxRank: number;
+  description: string;
+  effectKeys: string[];
+  rankEffects: TalentRankEffect[];
+}
+
+export interface TalentTreeDefinition {
+  class: TankClass;
+  treeKey: string;
+  name: string;
+  talents: TalentDefinition[];
+}
+
+export interface CharacterTalentBuild {
+  class: TankClass;
+  talentRanks: Record<string, number>;
+}
+
 export interface TbcEnchant {
   id: number;
   name: string;
@@ -131,6 +161,7 @@ export interface GearStatsRequest {
 }
 
 export interface GearStatsResponse {
+  activeSetBonuses: never[];
   gearStats: StatBlock;
   warnings: string[];
 }
@@ -170,6 +201,7 @@ export interface MagicMitigationStats {
 export interface FinalCharacterStatsRequest {
   race: CharacterRace;
   equippedGear: EquippedGearItem[];
+  talentBuild: CharacterTalentBuild;
   includeHolyShield: boolean;
 }
 

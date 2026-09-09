@@ -5,15 +5,19 @@ import {
   getEnchants,
   getGems,
   getItems,
+  getTalents,
 } from "./api";
 import type {
   CharacterRace,
+  CharacterTalentBuild,
   EquippedGearItem,
   ActiveItemSetBonus,
   FinalCharacterStatsResponse,
   ItemSlot,
   SocketColor,
   StatBlock,
+  TalentDefinition,
+  TalentTreeDefinition,
   TbcEnchant,
   TbcGem,
   TbcItem,
@@ -54,6 +58,29 @@ const raceOptions: RaceOption[] = [
   { label: "Draenei", value: "Draenei" },
   { label: "Human", value: "Human" },
   { label: "Dwarf", value: "Dwarf" },
+];
+
+type BuildTab =
+  | "gear"
+  | "talents"
+  | "buffs"
+  | "encounter"
+  | "sim"
+  | "optimizer";
+
+interface BuildTabOption {
+  id: BuildTab;
+  label: string;
+  isDisabled?: boolean;
+}
+
+const buildTabOptions: BuildTabOption[] = [
+  { id: "gear", label: "Gear" },
+  { id: "talents", label: "Talents" },
+  { id: "buffs", label: "Buffs", isDisabled: true },
+  { id: "encounter", label: "Encounter", isDisabled: true },
+  { id: "sim", label: "Sim", isDisabled: true },
+  { id: "optimizer", label: "Optimizer", isDisabled: true },
 ];
 
 const initialGear: EquippedSlot[] = [
@@ -318,6 +345,11 @@ function App() {
   const [isCalculatingFinalStats, setIsCalculatingFinalStats] = useState(false);
   const [finalStatsError, setFinalStatsError] = useState<string | null>(null);
 
+  const [talentTrees, setTalentTrees] = useState<TalentTreeDefinition[]>([]);
+  const [talentRanks, setTalentRanks] = useState<Record<string, number>>({});
+  const [isLoadingTalents, setIsLoadingTalents] = useState(false);
+  const [talentError, setTalentError] = useState<string | null>(null);
+
   const [selectedEnchantSlotIndex, setSelectedEnchantSlotIndex] = useState<number | null>(null);
   const [availableEnchants, setAvailableEnchants] = useState<TbcEnchant[]>([]);
   const [isLoadingEnchants, setIsLoadingEnchants] = useState(false);
@@ -335,7 +367,16 @@ function App() {
   const [gemError, setGemError] = useState<string | null>(null);
   const [gemSearchTerm, setGemSearchTerm] = useState("");
   const [includeEpicGems, setIncludeEpicGems] = useState(true);
-  
+  const [activeBuildTab, setActiveBuildTab] = useState<BuildTab>("gear");
+
+  const selectedTalentBuild = useMemo<CharacterTalentBuild>(
+    () => ({
+      class: "ProtectionPaladin",
+      talentRanks,
+    }),
+    [talentRanks]
+  );
+
 
   const selectedSlot =
     selectedSlotIndex !== null ? gear[selectedSlotIndex] : undefined;
@@ -397,6 +438,25 @@ function App() {
   }, [equippedGear]);
 
   useEffect(() => {
+    async function loadTalents() {
+      try {
+        setIsLoadingTalents(true);
+        setTalentError(null);
+
+        const result = await getTalents("ProtectionPaladin");
+
+        setTalentTrees(result);
+      } catch {
+        setTalentError("Unable to load talents.");
+      } finally {
+        setIsLoadingTalents(false);
+      }
+    }
+
+    void loadTalents();
+  }, []);
+
+  useEffect(() => {
     async function updateFinalCharacterStats() {
       try {
         setIsCalculatingFinalStats(true);
@@ -405,7 +465,8 @@ function App() {
         const result = await calculateFinalCharacterStats(
           selectedRace,
           equippedGear,
-          includeHolyShield
+          includeHolyShield,
+          selectedTalentBuild,
         );
 
         setFinalCharacterStats(result);
@@ -417,8 +478,9 @@ function App() {
     }
 
     void updateFinalCharacterStats();
-  }, [selectedRace, equippedGear, includeHolyShield]);
+  }, [selectedRace, equippedGear, includeHolyShield, selectedTalentBuild]);
 
+  
   const visibleStatRows = [
     { label: "Stamina", value: gearStatTotals.stamina },
     { label: "Strength", value: gearStatTotals.strength },
@@ -981,6 +1043,139 @@ function App() {
     );
   }
 
+  function getTalentRank(talent: TalentDefinition): number {
+    return talentRanks[talent.key] ?? 0;
+  }
+
+  function setTalentRank(talent: TalentDefinition, nextRank: number) {
+    const clampedRank = Math.max(0, Math.min(nextRank, talent.maxRank));
+
+    setTalentRanks((currentRanks) => {
+      const nextRanks = { ...currentRanks };
+
+      if (clampedRank === 0) {
+        delete nextRanks[talent.key];
+      } else {
+        nextRanks[talent.key] = clampedRank;
+      }
+
+      return nextRanks;
+    });
+  }
+
+  function addTalentRank(talent: TalentDefinition) {
+    setTalentRank(talent, getTalentRank(talent) + 1);
+  }
+
+  function removeTalentRank(talent: TalentDefinition) {
+    setTalentRank(talent, getTalentRank(talent) - 1);
+  }
+
+  function clearTalents() {
+    setTalentRanks({});
+  }
+
+  function getTalentTooltip(talent: TalentDefinition): string {
+    const rank = getTalentRank(talent);
+
+    const currentRankDescription =
+      rank > 0
+        ? talent.rankEffects.find((rankEffect) => rankEffect.rank === rank)
+            ?.description
+        : undefined;
+
+    const nextRankDescription =
+      rank < talent.maxRank
+        ? talent.rankEffects.find((rankEffect) => rankEffect.rank === rank + 1)
+            ?.description
+        : undefined;
+
+    return [
+      talent.name,
+      `Rank ${rank}/${talent.maxRank}`,
+      currentRankDescription
+        ? `Current: ${currentRankDescription}`
+        : talent.description,
+      nextRankDescription ? `Next: ${nextRankDescription}` : undefined,
+      "Left click to add. Right click to remove.",
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  function renderTalentTrees() {
+    return (
+      <div className="talent-tab-content">
+        <div className="talent-toolbar">
+          <div>
+            <h2>Talents</h2>
+            <p className="panel-caption">
+              Left click to add a point. Right click to remove a point. Talent
+              effects will be applied in the next calculation pass.
+            </p>
+          </div>
+
+          <button className="secondary-button" onClick={clearTalents}>
+            Clear Talents
+          </button>
+        </div>
+
+        {isLoadingTalents && <p className="muted">Loading talents...</p>}
+
+        {talentError && <p className="error">{talentError}</p>}
+
+        {!isLoadingTalents && !talentError && talentTrees.length === 0 && (
+          <p className="muted">No talents found.</p>
+        )}
+
+        <div className="wow-talent-tree-list">
+          {talentTrees.map((tree) => (
+            <div className="wow-talent-tree" key={tree.treeKey}>
+              <h3>{tree.name}</h3>
+
+              <div className="wow-talent-grid">
+                {tree.talents.map((talent) => {
+                  const rank = getTalentRank(talent);
+
+                  return (
+                    <button
+                      key={talent.key}
+                      className={`wow-talent-icon ${
+                        rank > 0 ? "wow-talent-icon-active" : ""
+                      }`}
+                      style={{
+                        gridRow: talent.row,
+                        gridColumn: talent.column,
+                      }}
+                      title={getTalentTooltip(talent)}
+                      onClick={() => addTalentRank(talent)}
+                      onContextMenu={(event) => {
+                        event.preventDefault();
+                        removeTalentRank(talent);
+                      }}
+                    >
+                      {talent.iconUrl ? (
+                        <img src={talent.iconUrl} alt={talent.name} />
+                      ) : (
+                        <span className="wow-talent-placeholder">
+                          {talent.name.slice(0, 2)}
+                        </span>
+                      )}
+
+                      <span className="wow-talent-rank">
+                        {rank}/{talent.maxRank}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -997,37 +1192,66 @@ function App() {
       </header>
 
       <main className="main-layout">
-        <section className="panel gear-panel">
-          <div className="panel-title-row">
-            <h2>Gear</h2>
-
-            <label className="phase-filter">
-              <span>Available Through</span>
-              <select
-                value={selectedPhase ?? "all"}
-                onChange={(event) => handlePhaseChange(event.target.value)}
+        <section className="panel build-panel">
+          <div className="build-tabs">
+            {buildTabOptions.map((tab) => (
+              <button
+                key={tab.id}
+                className={activeBuildTab === tab.id ? "active" : ""}
+                disabled={tab.isDisabled}
+                onClick={() => setActiveBuildTab(tab.id)}
               >
-                {phaseOptions.map((phaseOption) => (
-                  <option
-                    key={phaseOption.label}
-                    value={phaseOption.value ?? "all"}
-                  >
-                    {phaseOption.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <div className="gear-grid">
-            {gearColumns.map((gearColumn, columnIndex) => (
-              <div className="gear-column" key={`gear-column-${columnIndex}`}>
-                {gearColumn.map(({ gearSlot, index }) =>
-                  renderGearCard(gearSlot, index)
-                )}
-              </div>
+                {tab.label}
+              </button>
             ))}
           </div>
+
+          {activeBuildTab === "gear" && (
+            <>
+              <div className="panel-title-row">
+                <h2>Gear</h2>
+
+                <label className="phase-filter">
+                  <span>Available Through</span>
+                  <select
+                    value={selectedPhase ?? "all"}
+                    onChange={(event) => handlePhaseChange(event.target.value)}
+                  >
+                    {phaseOptions.map((phaseOption) => (
+                      <option
+                        key={phaseOption.label}
+                        value={phaseOption.value ?? "all"}
+                      >
+                        {phaseOption.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="gear-grid">
+                {gearColumns.map((gearColumn, columnIndex) => (
+                  <div className="gear-column" key={`gear-column-${columnIndex}`}>
+                    {gearColumn.map(({ gearSlot, index }) =>
+                      renderGearCard(gearSlot, index)
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {activeBuildTab === "talents" && renderTalentTrees()}
+
+          {activeBuildTab !== "gear" && activeBuildTab !== "talents" && (
+            <div className="placeholder-panel">
+              <h2>
+                {buildTabOptions.find((tab) => tab.id === activeBuildTab)
+                  ?.label}
+              </h2>
+              <p className="muted">This section will be added later.</p>
+            </div>
+          )}
         </section>
 
         <section className="panel stats-panel">
