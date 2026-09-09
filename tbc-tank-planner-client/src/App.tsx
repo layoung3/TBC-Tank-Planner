@@ -9,6 +9,7 @@ import {
 import type {
   CharacterRace,
   EquippedGearItem,
+  ActiveItemSetBonus,
   FinalCharacterStatsResponse,
   ItemSlot,
   SocketColor,
@@ -306,6 +307,7 @@ function App() {
     createEmptyStats()
   );
   const [calculationWarnings, setCalculationWarnings] = useState<string[]>([]);
+  const [activeGearSetBonuses, setActiveGearSetBonuses] = useState<ActiveItemSetBonus[]>([]);
   const [isCalculatingStats, setIsCalculatingStats] = useState(false);
   const [selectedRace, setSelectedRace] = useState<CharacterRace>("BloodElf");
   const [includeHolyShield, setIncludeHolyShield] = useState(true);
@@ -337,6 +339,8 @@ function App() {
 
   const selectedSlot =
     selectedSlotIndex !== null ? gear[selectedSlotIndex] : undefined;
+
+  const activeFinalSetBonuses = finalCharacterStats?.activeSetBonuses ?? [];
 
   const selectedEnchantSlot =
     selectedEnchantSlotIndex !== null ? gear[selectedEnchantSlotIndex] : undefined;
@@ -370,6 +374,7 @@ function App() {
       if (equippedGear.length === 0) {
         setGearStatTotals(createEmptyStats());
         setCalculationWarnings([]);
+        setActiveGearSetBonuses([]);
         return;
       }
 
@@ -380,6 +385,7 @@ function App() {
 
         setGearStatTotals(result.gearStats);
         setCalculationWarnings(result.warnings);
+        setActiveGearSetBonuses(result.activeSetBonuses ?? []);
       } catch {
         setCalculationWarnings(["Unable to calculate gear stats."]);
       } finally {
@@ -1058,6 +1064,28 @@ function App() {
             </div>
           )}
 
+          {activeGearSetBonuses.length > 0 && (
+            <div className="set-bonus-list">
+              <h3 className="set-bonus-title">Active Set Bonuses</h3>
+
+              {activeGearSetBonuses.map((bonus) => (
+                <div
+                  className="set-bonus-card"
+                  key={`${bonus.setId}-${bonus.piecesRequired}`}
+                >
+                  <div className="set-bonus-heading">
+                    <strong>{bonus.setName}</strong>
+                    <span>
+                      {bonus.piecesRequired}pc active ({bonus.piecesEquipped} equipped)
+                    </span>
+                  </div>
+
+                  <p>{bonus.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
           {calculationWarnings.length > 0 && (
             <div className="warning-list">
               {calculationWarnings.map((warning) => (
@@ -1184,6 +1212,30 @@ function App() {
                   </div>
                 ))}
               </div>
+
+              {activeFinalSetBonuses.length > 0 && (
+                <>
+                  <h3 className="subsection-title">Set Bonuses</h3>
+
+                  <div className="set-bonus-list compact-set-bonus-list">
+                    {activeFinalSetBonuses.map((bonus) => (
+                      <div
+                        className="set-bonus-card"
+                        key={`${bonus.setId}-${bonus.piecesRequired}`}
+                      >
+                        <div className="set-bonus-heading">
+                          <strong>{bonus.setName}</strong>
+                          <span>
+                            {bonus.piecesRequired}pc active ({bonus.piecesEquipped} equipped)
+                          </span>
+                        </div>
+
+                        <p>{bonus.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
 
               {physicalMitigationStats && (
                 <>

@@ -1,5 +1,6 @@
-﻿using TbcTankPlanner.Domain.Stats;
-using TbcTankPlanner.Domain.Characters;
+﻿using TbcTankPlanner.Domain.Characters;
+using TbcTankPlanner.Domain.ItemSets;
+using TbcTankPlanner.Domain.Stats;
 
 namespace TbcTankPlanner.Domain.Calculations;
 
@@ -9,6 +10,8 @@ public class FinalCharacterStatsResponse
 
     public int Health { get; set; }
     public int Mana { get; set; }
+
+    public List<ActiveItemSetBonus> ActiveSetBonuses { get; set; } = [];
 
     public CharacterBaseStats BaseStats { get; set; } = new();
 

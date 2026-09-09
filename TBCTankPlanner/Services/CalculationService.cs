@@ -1,8 +1,9 @@
 ﻿using TbcTankPlanner.Domain.Calculations;
-using TbcTankPlanner.Domain.Stats;
 using TbcTankPlanner.Domain.Characters;
 using TbcTankPlanner.Domain.Gems;
 using TbcTankPlanner.Domain.Items;
+using TbcTankPlanner.Domain.ItemSets;
+using TbcTankPlanner.Domain.Stats;
 
 namespace TbcTankPlanner.Services;
 
@@ -12,15 +13,18 @@ public class CalculationService
     private readonly EnchantDataService _enchantDataService;
     private readonly GemDataService _gemDataService;
 
+    private readonly ItemSetDataService _itemSetDataService;
+
     public CalculationService(
     ItemDataService itemDataService,
     EnchantDataService enchantDataService,
-    GemDataService gemDataService
+    GemDataService gemDataService, ItemSetDataService itemSetDataService
     )
     {
         _itemDataService = itemDataService;
         _enchantDataService = enchantDataService;
         _gemDataService = gemDataService;
+        _itemSetDataService = itemSetDataService;
     }
 
     public async Task<GearStatsResponse> CalculateGearStatsAsync(GearStatsRequest request)
@@ -33,6 +37,11 @@ public class CalculationService
 
         var allGems = await _gemDataService.GetAllGemsAsync();
         var gemLookup = allGems.ToDictionary(gem => gem.Id);
+
+        var allItemSets = await _itemSetDataService.GetAllItemSetsAsync();
+        var itemSetLookup = allItemSets.ToDictionary(itemSet => itemSet.Id);
+
+        var equippedItemsForSetBonuses = new List<TbcItem>();
 
         var response = new GearStatsResponse();
 
@@ -52,6 +61,7 @@ public class CalculationService
                     if (itemLookup.TryGetValue(gearItem.ItemId.Value, out var item))
                     {
                         equippedItem = item;
+                        equippedItemsForSetBonuses.Add(item);
                         AddStats(response.GearStats, item.Stats);
                     }
                     else
@@ -90,6 +100,12 @@ public class CalculationService
                 );
             }
 
+            ApplySetBonuses(
+                response,
+                equippedItemsForSetBonuses,
+                itemSetLookup
+            );
+
             return response;
         }
 
@@ -101,9 +117,16 @@ public class CalculationService
                 response.Warnings.Add($"Item ID {itemId} was not found.");
                 continue;
             }
+            equippedItemsForSetBonuses.Add(item);
 
             AddStats(response.GearStats, item.Stats);
         }
+
+        ApplySetBonuses(
+            response,
+            equippedItemsForSetBonuses,
+            itemSetLookup
+        );
 
         return response;
     }
@@ -186,6 +209,7 @@ public class CalculationService
         var response = new FinalCharacterStatsResponse
         {
             Race = request.Race,
+            ActiveSetBonuses = gearStatsResponse.ActiveSetBonuses,
             BaseStats = baseStats,
             GearStats = gearStatsResponse.GearStats,
             FinalStats = convertedStats.Stats,
@@ -716,6 +740,53 @@ public class CalculationService
         }
 
         return request.EquippedItemIds;
+    }
+
+    private static void ApplySetBonuses(
+        GearStatsResponse response,
+        IReadOnlyList<TbcItem> equippedItems,
+        Dictionary<int, TbcItemSet> itemSetLookup
+    )
+    {
+        var equippedSetGroups = equippedItems
+            .Where(item => item.SetId.HasValue)
+            .GroupBy(item => item.SetId!.Value);
+
+        foreach (var setGroup in equippedSetGroups)
+        {
+            var setId = setGroup.Key;
+
+            if (!itemSetLookup.TryGetValue(setId, out var itemSet))
+            {
+                response.Warnings.Add($"Item set ID {setId} was not found.");
+                continue;
+            }
+
+            var piecesEquipped = setGroup
+                .Select(item => item.Id)
+                .Distinct()
+                .Count();
+
+            var activeBonuses = itemSet.Bonuses
+                .Where(bonus => bonus.PiecesRequired <= piecesEquipped)
+                .OrderBy(bonus => bonus.PiecesRequired);
+
+            foreach (var bonus in activeBonuses)
+            {
+                AddStats(response.GearStats, bonus.Stats);
+
+                response.ActiveSetBonuses.Add(new ActiveItemSetBonus
+                {
+                    SetId = itemSet.Id,
+                    SetName = itemSet.Name,
+                    PiecesEquipped = piecesEquipped,
+                    PiecesRequired = bonus.PiecesRequired,
+                    Description = bonus.Description,
+                    Stats = bonus.Stats,
+                    EffectKeys = bonus.EffectKeys
+                });
+            }
+        }
     }
 
     private static PhysicalMitigationStats CalculatePhysicalMitigationStats(

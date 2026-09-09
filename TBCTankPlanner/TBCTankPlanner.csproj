@@ -18,6 +18,7 @@
     <Folder Include="Data\Items\" />
     <Folder Include="Data\enchants\" />
     <Folder Include="Data\gems\" />
+    <Folder Include="Data\item-sets\" />
   </ItemGroup>
 
 </Project>

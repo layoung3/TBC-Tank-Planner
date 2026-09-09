@@ -1,0 +1,24 @@
+[
+  {
+    "id": 625,
+    "name": "Justicar Armor",
+    "bonuses": [
+      {
+        "piecesRequired": 2,
+        "description": "Increases the damage dealt by your Seal of Righteousness, Seal of Vengeance, or Seal of Blood / Seal of the Martyr by 10%.",
+        "stats": {},
+        "effectKeys": [
+          "JusticarArmor_2Piece_SealDamage10Percent"
+        ]
+      },
+      {
+        "piecesRequired": 4,
+        "description": "Increases the damage dealt by your Holy Shield by 15.",
+        "stats": {},
+        "effectKeys": [
+          "JusticarArmor_4Piece_HolyShieldDamage15"
+        ]
+      }
+    ]
+  }
+]

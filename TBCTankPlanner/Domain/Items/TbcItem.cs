@@ -18,6 +18,9 @@ public class TbcItem
     public string Source { get; set; } = "";
     public string Quality { get; set; } = "";
 
+    public int? SetId { get; set; }
+    public string? SetName { get; set; }
+
     public StatBlock Stats { get; set; } = new();
 
     public List<SocketColor> Sockets { get; set; } = [];

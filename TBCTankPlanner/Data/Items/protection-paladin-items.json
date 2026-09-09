@@ -50,6 +50,8 @@
     "phase": 1,
     "source": "Karazhan / Tier 4 Token",
     "quality": "Epic",
+    "setId": 625,
+    "setName": "Justicar Armor",
     "stats": {
       "armor": 1227,
       "stamina": 43,
@@ -73,6 +75,8 @@
     "phase": 1,
     "source": "Gruul's Lair / Tier 4 Token",
     "quality": "Epic",
+    "setId": 625,
+    "setName": "Justicar Armor",
     "stats": {
       "armor": 1133,
       "stamina": 37,
@@ -97,6 +101,8 @@
     "phase": 1,
     "source": "Magtheridon's Lair / Tier 4 Token",
     "quality": "Epic",
+    "setId": 625,
+    "setName": "Justicar Armor",
     "stats": {
       "armor": 1510,
       "stamina": 48,
@@ -120,6 +126,8 @@
     "phase": 1,
     "source": "Karazhan / Tier 4 Token",
     "quality": "Epic",
+    "setId": 625,
+    "setName": "Justicar Armor",
     "stats": {
       "armor": 944,
       "stamina": 34,
@@ -141,6 +149,8 @@
     "phase": 1,
     "source": "Gruul's Lair / Tier 4 Token",
     "quality": "Epic",
+    "setId": 625,
+    "setName": "Justicar Armor",
     "stats": {
       "armor": 1322,
       "stamina": 46,
@@ -167,7 +177,7 @@
       "blockValue": 83,
       "stamina": 33,
       "defenseRating": 24,
-      "fireResistance": 25
+      "fireResistance": 100
     },
     "sockets": [],
     "socketBonus": {},

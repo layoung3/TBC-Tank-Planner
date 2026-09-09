@@ -84,6 +84,16 @@ export interface EquippedGearItem {
   gemIds: Array<number | null>;
 }
 
+export interface ActiveItemSetBonus {
+  setId: number;
+  setName: string;
+  piecesEquipped: number;
+  piecesRequired: number;
+  description: string;
+  stats: StatBlock;
+  effectKeys: string[];
+}
+
 export interface TbcEnchant {
   id: number;
   name: string;
@@ -117,6 +127,7 @@ export interface GemColorRequirement {
 
 export interface GearStatsRequest {
   equippedGear: EquippedGearItem[];
+  activeSetBonuses: ActiveItemSetBonus[];
 }
 
 export interface GearStatsResponse {
@@ -166,6 +177,7 @@ export interface FinalCharacterStatsResponse {
   race: CharacterRace;
   health: number;
   mana: number;
+  activeSetBonuses: ActiveItemSetBonus[];
   baseStats: CharacterBaseStats;
   gearStats: StatBlock;
   finalStats: StatBlock;
