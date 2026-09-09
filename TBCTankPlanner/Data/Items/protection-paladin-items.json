@@ -9,12 +9,13 @@
     "source": "Blacksmithing",
     "quality": "Rare",
     "stats": {
-      "stamina": 33,
-      "defenseRating": 27
+      "armor": 1284,
+      "stamina": 27,
+      "defenseRating": 33
     },
-    "sockets": [ "Meta", "Blue" ],
+    "sockets": [ "Red", "Blue", "Blue" ],
     "socketBonus": {
-      "stamina": 4
+      "hitRating": 4
     },
     "isCustom": false
   },
@@ -28,18 +29,20 @@
     "source": "Badge Vendor",
     "quality": "Epic",
     "stats": {
+      "armor": 1129,
       "stamina": 36,
       "defenseRating": 32,
-      "dodgeRating": 24
+      "dodgeRating": 24,
+      "blockRating": 24
     },
-    "sockets": [ "Meta", "Blue" ],
+    "sockets": [ "Blue", "Meta" ],
     "socketBonus": {
-      "stamina": 4
+      "stamina": 6
     },
     "isCustom": false
   },
   {
-    "id": 29061,
+    "id": 29068,
     "name": "Justicar Faceguard",
     "iconUrl": null,
     "slot": "Head",
@@ -48,15 +51,143 @@
     "source": "Karazhan / Tier 4 Token",
     "quality": "Epic",
     "stats": {
-      "stamina": 48,
-      "intellect": 33,
-      "defenseRating": 21,
-      "spellPower": 25
+      "armor": 1227,
+      "stamina": 43,
+      "intellect": 24,
+      "defenseRating": 29,
+      "dodgeRating": 24,
+      "spellPower": 27
     },
-    "sockets": [ "Meta", "Yellow" ],
+    "sockets": [ "Yellow", "Meta" ],
     "socketBonus": {
-      "blockValue": 4
+      "dodgeRating": 4
     },
+    "isCustom": false
+  },
+  {
+    "id": 29070,
+    "name": "Justicar Shoulderguards",
+    "iconUrl": null,
+    "slot": "Shoulders",
+    "allowedClasses": [ "ProtectionPaladin" ],
+    "phase": 1,
+    "source": "Gruul's Lair / Tier 4 Token",
+    "quality": "Epic",
+    "stats": {
+      "armor": 1133,
+      "stamina": 37,
+      "intellect": 14,
+      "defenseRating": 15,
+      "blockRating": 17,
+      "blockValue": 27,
+      "spellPower": 26
+    },
+    "sockets": [ "Blue", "Yellow" ],
+    "socketBonus": {
+      "stamina": 4
+    },
+    "isCustom": false
+  },
+  {
+    "id": 29066,
+    "name": "Justicar Chestguard",
+    "iconUrl": null,
+    "slot": "Chest",
+    "allowedClasses": [ "ProtectionPaladin" ],
+    "phase": 1,
+    "source": "Magtheridon's Lair / Tier 4 Token",
+    "quality": "Epic",
+    "stats": {
+      "armor": 1510,
+      "stamina": 48,
+      "intellect": 30,
+      "defenseRating": 23,
+      "blockRating": 23,
+      "spellPower": 27
+    },
+    "sockets": [ "Red", "Blue", "Yellow" ],
+    "socketBonus": {
+      "defenseRating": 4
+    },
+    "isCustom": false
+  },
+  {
+    "id": 29067,
+    "name": "Justicar Handguards",
+    "iconUrl": null,
+    "slot": "Hands",
+    "allowedClasses": [ "ProtectionPaladin" ],
+    "phase": 1,
+    "source": "Karazhan / Tier 4 Token",
+    "quality": "Epic",
+    "stats": {
+      "armor": 944,
+      "stamina": 34,
+      "intellect": 24,
+      "defenseRating": 23,
+      "blockValue": 35,
+      "spellPower": 27
+    },
+    "sockets": [],
+    "socketBonus": {},
+    "isCustom": false
+  },
+  {
+    "id": 29069,
+    "name": "Justicar Legguards",
+    "iconUrl": null,
+    "slot": "Legs",
+    "allowedClasses": [ "ProtectionPaladin" ],
+    "phase": 1,
+    "source": "Gruul's Lair / Tier 4 Token",
+    "quality": "Epic",
+    "stats": {
+      "armor": 1322,
+      "stamina": 46,
+      "intellect": 31,
+      "defenseRating": 31,
+      "parryRating": 31,
+      "spellPower": 36
+    },
+    "sockets": [],
+    "socketBonus": {},
+    "isCustom": false
+  },
+  {
+    "id": 27887,
+    "name": "Platinum Shield of the Valorous",
+    "iconUrl": null,
+    "slot": "Shield",
+    "allowedClasses": [ "ProtectionPaladin", "ProtectionWarrior" ],
+    "phase": 0,
+    "source": "Shadow Labyrinth - Ambassador Hellmaw",
+    "quality": "Rare",
+    "stats": {
+      "armor": 3711,
+      "blockValue": 83,
+      "stamina": 33,
+      "defenseRating": 24
+    },
+    "sockets": [],
+    "socketBonus": {},
+    "isCustom": false
+  },
+  {
+    "id": 30832,
+    "name": "Gavel of Unearthed Secrets",
+    "iconUrl": null,
+    "slot": "MainHand",
+    "allowedClasses": [ "ProtectionPaladin" ],
+    "phase": 0,
+    "source": "Lower City - Exalted",
+    "quality": "Epic",
+    "stats": {
+      "stamina": 24,
+      "intellect": 16,
+      "spellPower": 159
+    },
+    "sockets": [],
+    "socketBonus": {},
     "isCustom": false
   }
 ]

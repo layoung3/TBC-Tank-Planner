@@ -265,6 +265,25 @@ function formatMetaRequirementProgress(
     .join(", ");
 }
 
+function getSocketDisplayIndexes(sockets: SocketColor[]): number[] {
+  return sockets
+    .map((_, index) => index)
+    .sort((leftIndex, rightIndex) => {
+      const leftSocket = sockets[leftIndex];
+      const rightSocket = sockets[rightIndex];
+
+      if (leftSocket === "Meta" && rightSocket !== "Meta") {
+        return -1;
+      }
+
+      if (leftSocket !== "Meta" && rightSocket === "Meta") {
+        return 1;
+      }
+
+      return leftIndex - rightIndex;
+    });
+}
+
 function App() {
   const [gear, setGear] = useState<EquippedSlot[]>(initialGear);
   const [selectedPhase, setSelectedPhase] = useState<number | undefined>(undefined);
@@ -840,12 +859,10 @@ function App() {
 
             {gearSlot.item.sockets.length > 0 && (
               <div className="socket-chip-list">
-                {gearSlot.item.sockets.map((socketColor, socketIndex) => {
+                {getSocketDisplayIndexes(gearSlot.item.sockets).map((socketIndex) => {
+                  const socketColor = gearSlot.item!.sockets[socketIndex];
                   const selectedGem = gearSlot.gems?.[socketIndex] ?? null;
-                  const socketMatches = doesGemMatchSocket(
-                    selectedGem,
-                    socketColor
-                  );
+                  const socketMatches = doesGemMatchSocket(selectedGem, socketColor);
 
                   return (
                     <div
