@@ -11,4 +11,6 @@ public class FinalCharacterStatsRequest
     public List<int> EquippedItemIds { get; set; } = [];
 
     public bool IncludeHolyShield { get; set; }
+
+    public EncounterSettings Encounter { get; set; } = new();
 }

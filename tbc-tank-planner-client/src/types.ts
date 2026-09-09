@@ -126,6 +126,16 @@ export interface CharacterBaseStats {
   stats: StatBlock;
 }
 
+export interface PhysicalMitigationStats {
+  attackerLevel: number;
+  armor: number;
+  armorDamageReductionPercent: number;
+  damageTakenMultiplier: number;
+  physicalEffectiveHealth: number;
+  armorCap: number;
+  armorNeededForCap: number;
+}
+
 export interface FinalCharacterStatsRequest {
   race: CharacterRace;
   equippedGear: EquippedGearItem[];
@@ -140,6 +150,7 @@ export interface FinalCharacterStatsResponse {
   gearStats: StatBlock;
   finalStats: StatBlock;
   derivedTankStats: DerivedTankStats;
+  physicalMitigationStats: PhysicalMitigationStats;
   warnings: string[];
 }
 

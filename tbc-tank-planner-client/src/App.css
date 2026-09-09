@@ -918,6 +918,13 @@ button {
   max-width: 100%;
 }
 
+.summary-card small {
+  display: block;
+  margin-top: 4px;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
 @media (max-width: 1500px) {
   .main-layout {
     grid-template-columns:

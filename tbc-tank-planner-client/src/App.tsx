@@ -454,6 +454,7 @@ function App() {
   : [];
 
   const derivedTankStats = finalCharacterStats?.derivedTankStats;
+  const physicalMitigationStats = finalCharacterStats?.physicalMitigationStats;
 
   const selectedPhaseLabel =
     phaseOptions.find((option) => option.value === selectedPhase)?.label ??
@@ -1053,6 +1054,26 @@ function App() {
                   <strong>{finalCharacterStats.mana}</strong>
                 </div>
 
+                {physicalMitigationStats && (
+                  <>
+                    <div className="summary-card">
+                      <span>Physical EHP</span>
+                      <strong>
+                        {physicalMitigationStats.physicalEffectiveHealth.toLocaleString()}
+                      </strong>
+                      <small>vs level {physicalMitigationStats.attackerLevel}</small>
+                    </div>
+
+                    <div className="summary-card">
+                      <span>Armor DR</span>
+                      <strong>{physicalMitigationStats.armorDamageReductionPercent}%</strong>
+                      <small>
+                        {physicalMitigationStats.armorNeededForCap.toLocaleString()} armor to cap
+                      </small>
+                    </div>
+                  </>
+                )}
+
                 {derivedTankStats && (
                   <>
                     <div
@@ -1096,6 +1117,38 @@ function App() {
                   </div>
                 ))}
               </div>
+
+              {physicalMitigationStats && (
+                <>
+                  <h3 className="subsection-title">Mitigation</h3>
+
+                  <div className="compact-stat-grid">
+                    <div className="compact-stat">
+                      <span>Physical EHP</span>
+                      <strong>
+                        {physicalMitigationStats.physicalEffectiveHealth.toLocaleString()}
+                      </strong>
+                    </div>
+
+                    <div className="compact-stat">
+                      <span>Armor DR</span>
+                      <strong>{physicalMitigationStats.armorDamageReductionPercent}%</strong>
+                    </div>
+
+                    <div className="compact-stat">
+                      <span>Armor Cap</span>
+                      <strong>{physicalMitigationStats.armorCap.toLocaleString()}</strong>
+                    </div>
+
+                    <div className="compact-stat">
+                      <span>Armor to Cap</span>
+                      <strong>
+                        {physicalMitigationStats.armorNeededForCap.toLocaleString()}
+                      </strong>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {derivedTankStats && (
                 <>

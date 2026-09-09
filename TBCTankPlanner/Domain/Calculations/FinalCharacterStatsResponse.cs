@@ -20,5 +20,7 @@ public class FinalCharacterStatsResponse
 
     public DerivedTankStats DerivedTankStats { get; set; } = new();
 
+    public PhysicalMitigationStats PhysicalMitigationStats { get; set; } = new();
+
     public List<string> Warnings { get; set; } = [];
 }

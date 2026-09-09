@@ -165,6 +165,12 @@ public class CalculationService
             request.IncludeHolyShield
         );
 
+        var physicalMitigationStats = CalculatePhysicalMitigationStats(
+            convertedStats.Health,
+            convertedStats.Stats,
+            request.Encounter.AttackerLevel
+        );
+
         var response = new FinalCharacterStatsResponse
         {
             Race = request.Race,
@@ -175,6 +181,7 @@ public class CalculationService
             DerivedTankStats = derivedTankStats,
             Health = convertedStats.Health,
             Mana = convertedStats.Mana,
+            PhysicalMitigationStats = physicalMitigationStats,
             Warnings = gearStatsResponse.Warnings
         };
 
@@ -574,10 +581,10 @@ public class CalculationService
     }
 
     private static List<TbcGem> GetValidRegularGemsForMetaRequirements(
-    IReadOnlyList<EquippedGearItem> equippedGear,
-    Dictionary<int, TbcItem> itemLookup,
-    Dictionary<int, TbcGem> gemLookup
-)
+        IReadOnlyList<EquippedGearItem> equippedGear,
+        Dictionary<int, TbcItem> itemLookup,
+        Dictionary<int, TbcGem> gemLookup
+    )
     {
         var validRegularGems = new List<TbcGem>();
 
@@ -690,5 +697,77 @@ public class CalculationService
         }
 
         return request.EquippedItemIds;
+    }
+
+    private static PhysicalMitigationStats CalculatePhysicalMitigationStats(
+    int health,
+    StatBlock finalStats,
+    int attackerLevel
+)
+    {
+        const decimal maxArmorDamageReductionPercent = 75m;
+
+        var armor = Math.Max(finalStats.Armor, 0);
+        var armorConstant = GetArmorConstant(attackerLevel);
+
+        var armorDamageReductionPercent = 0m;
+
+        if (armor > 0 && armorConstant > 0)
+        {
+            armorDamageReductionPercent =
+                armor / (armor + armorConstant) * 100m;
+        }
+
+        armorDamageReductionPercent = Math.Min(
+            armorDamageReductionPercent,
+            maxArmorDamageReductionPercent
+        );
+
+        armorDamageReductionPercent = Math.Max(armorDamageReductionPercent, 0m);
+
+        var damageTakenMultiplier = 1m - armorDamageReductionPercent / 100m;
+
+        var physicalEffectiveHealth =
+            damageTakenMultiplier > 0
+                ? (int)Math.Floor(health / damageTakenMultiplier)
+                : health;
+
+        var armorCap = (int)Math.Ceiling(GetArmorNeededForMitigationPercent(
+            maxArmorDamageReductionPercent,
+            armorConstant
+        ));
+
+        return new PhysicalMitigationStats
+        {
+            AttackerLevel = attackerLevel,
+            Armor = armor,
+            ArmorDamageReductionPercent = RoundPercent(armorDamageReductionPercent),
+            DamageTakenMultiplier = RoundPercent(damageTakenMultiplier),
+            PhysicalEffectiveHealth = physicalEffectiveHealth,
+            ArmorCap = armorCap,
+            ArmorNeededForCap = Math.Max(armorCap - armor, 0)
+        };
+    }
+
+    private static decimal GetArmorConstant(int attackerLevel)
+    {
+        // TBC level 60+ armor constant.
+        // Level 73 raid boss: 467.5 * 73 - 22167.5 = 11960.
+        return 467.5m * attackerLevel - 22167.5m;
+    }
+
+    private static decimal GetArmorNeededForMitigationPercent(
+        decimal mitigationPercent,
+        decimal armorConstant
+    )
+    {
+        var mitigation = mitigationPercent / 100m;
+
+        if (mitigation <= 0m || mitigation >= 1m)
+        {
+            return 0m;
+        }
+
+        return mitigation * armorConstant / (1m - mitigation);
     }
 }
