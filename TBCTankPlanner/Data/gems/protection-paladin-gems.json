@@ -13,6 +13,12 @@
     },
     "effectDescription": "5% Stun Resist",
     "metaRequirementDescription": "Requires at least 3 Blue gems",
+    "metaRequirements": [
+      {
+        "color": "Blue",
+        "count": 3
+      }
+    ],
     "isCustom": false
   },
   {

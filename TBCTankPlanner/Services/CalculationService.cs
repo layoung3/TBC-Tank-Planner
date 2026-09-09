@@ -38,6 +38,11 @@ public class CalculationService
 
         if (request.EquippedGear.Count > 0)
         {
+            var validRegularGemsForMetaRequirements = GetValidRegularGemsForMetaRequirements(
+                request.EquippedGear,
+                itemLookup,
+                gemLookup
+            );
             foreach (var gearItem in request.EquippedGear)
             {
                 TbcItem? equippedItem = null;
@@ -76,7 +81,13 @@ public class CalculationService
                     }
                 }
 
-                ApplyGemStats(response, gearItem, equippedItem, gemLookup);
+                ApplyGemStats(
+                    response,
+                    gearItem,
+                    equippedItem,
+                    gemLookup,
+                    validRegularGemsForMetaRequirements
+                );
             }
 
             return response;
@@ -451,7 +462,8 @@ public class CalculationService
         GearStatsResponse response,
         EquippedGearItem gearItem,
         TbcItem? equippedItem,
-        Dictionary<int, TbcGem> gemLookup
+        Dictionary<int, TbcGem> gemLookup,
+        IReadOnlyList<TbcGem> validRegularGemsForMetaRequirements
     )
     {
         if (gearItem.GemIds.Count == 0)
@@ -512,7 +524,22 @@ public class CalculationService
                 continue;
             }
 
-            AddStats(response.GearStats, gem.Stats);
+            var gemStatsAreActive = true;
+
+            if (gem.Color == SocketColor.Meta &&
+                !AreMetaRequirementsMet(gem, validRegularGemsForMetaRequirements))
+            {
+                gemStatsAreActive = false;
+
+                response.Warnings.Add(
+                    $"{gem.Name} is socketed, but its meta requirements are not met: {GetMetaRequirementSummary(gem)}."
+                );
+            }
+
+            if (gemStatsAreActive)
+            {
+                AddStats(response.GearStats, gem.Stats);
+            }
 
             if (!DoesGemMatchSocket(gem, socketColor))
             {
@@ -544,6 +571,102 @@ public class CalculationService
         }
 
         return gem.MatchesSocketColors.Contains(socketColor);
+    }
+
+    private static List<TbcGem> GetValidRegularGemsForMetaRequirements(
+    IReadOnlyList<EquippedGearItem> equippedGear,
+    Dictionary<int, TbcItem> itemLookup,
+    Dictionary<int, TbcGem> gemLookup
+)
+    {
+        var validRegularGems = new List<TbcGem>();
+
+        foreach (var gearItem in equippedGear)
+        {
+            if (!gearItem.ItemId.HasValue ||
+                !itemLookup.TryGetValue(gearItem.ItemId.Value, out var equippedItem))
+            {
+                continue;
+            }
+
+            if (equippedItem.Sockets.Count == 0 || gearItem.GemIds.Count == 0)
+            {
+                continue;
+            }
+
+            var gemCountToCheck = Math.Min(
+                gearItem.GemIds.Count,
+                equippedItem.Sockets.Count
+            );
+
+            for (var index = 0; index < gemCountToCheck; index++)
+            {
+                var gemId = gearItem.GemIds[index];
+
+                if (!gemId.HasValue)
+                {
+                    continue;
+                }
+
+                if (!gemLookup.TryGetValue(gemId.Value, out var gem))
+                {
+                    continue;
+                }
+
+                if (gem.Color == SocketColor.Meta)
+                {
+                    continue;
+                }
+
+                var socketColor = equippedItem.Sockets[index];
+
+                if (!CanGemFitSocket(gem, socketColor))
+                {
+                    continue;
+                }
+
+                validRegularGems.Add(gem);
+            }
+        }
+
+        return validRegularGems;
+    }
+
+    private static bool AreMetaRequirementsMet(
+        TbcGem metaGem,
+        IReadOnlyList<TbcGem> validRegularGems
+    )
+    {
+        if (metaGem.Color != SocketColor.Meta)
+        {
+            return true;
+        }
+
+        if (metaGem.MetaRequirements.Count == 0)
+        {
+            return true;
+        }
+
+        return metaGem.MetaRequirements.All(requirement =>
+            validRegularGems.Count(gem =>
+                gem.MatchesSocketColors.Contains(requirement.Color)
+            ) >= requirement.Count
+        );
+    }
+
+    private static string GetMetaRequirementSummary(TbcGem metaGem)
+    {
+        if (metaGem.MetaRequirements.Count == 0)
+        {
+            return metaGem.MetaRequirementDescription ?? "No requirement listed";
+        }
+
+        return string.Join(
+            ", ",
+            metaGem.MetaRequirements.Select(requirement =>
+                $"{requirement.Count} {requirement.Color} gem(s)"
+            )
+        );
     }
 
     private static int ApplyMultiplier(int value, decimal multiplier)

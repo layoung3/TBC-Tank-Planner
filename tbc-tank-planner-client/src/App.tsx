@@ -111,6 +111,160 @@ function ItemIcon({ item }: { item?: TbcItem }) {
   return <div className="item-icon item-icon-placeholder">?</div>;
 }
 
+function formatStatSummary(stats: StatBlock): string {
+  const statEntries: Array<[string, number]> = [
+    ["Stam", stats.stamina],
+    ["Str", stats.strength],
+    ["Agi", stats.agility],
+    ["Int", stats.intellect],
+    ["Armor", stats.armor],
+    ["Def", stats.defenseRating],
+    ["Dodge", stats.dodgeRating],
+    ["Parry", stats.parryRating],
+    ["Block", stats.blockRating],
+    ["Block Value", stats.blockValue],
+    ["Resil", stats.resilienceRating],
+    ["Hit", stats.hitRating],
+    ["Spell Hit", stats.spellHitRating],
+    ["Expertise", stats.expertiseRating],
+    ["AP", stats.attackPower],
+    ["SP", stats.spellPower],
+    ["MP5", stats.mp5],
+  ];
+
+  return statEntries
+    .filter(([, value]) => value > 0)
+    .map(([label, value]) => `+${value} ${label}`)
+    .join(", ");
+}
+
+function doesGemMatchSocket(
+  gem: TbcGem | null | undefined,
+  socketColor: SocketColor
+): boolean {
+  if (!gem) {
+    return false;
+  }
+
+  if (socketColor === "Meta") {
+    return gem.color === "Meta";
+  }
+
+  return gem.matchesSocketColors.includes(socketColor);
+}
+
+function isSocketBonusActive(
+  item: TbcItem,
+  gems?: Array<TbcGem | null>
+): boolean {
+  if (item.sockets.length === 0) {
+    return false;
+  }
+
+  if (!gems || gems.length < item.sockets.length) {
+    return false;
+  }
+
+  return item.sockets.every((socketColor, index) =>
+    doesGemMatchSocket(gems[index], socketColor)
+  );
+}
+
+function canGemFitSocket(
+  gem: TbcGem,
+  socketColor: SocketColor
+): boolean {
+  if (socketColor === "Meta") {
+    return gem.color === "Meta";
+  }
+
+  return gem.color !== "Meta";
+}
+
+function getValidRegularGemsForMetaRequirements(
+  gear: EquippedSlot[]
+): TbcGem[] {
+  const validRegularGems: TbcGem[] = [];
+
+  gear.forEach((gearSlot) => {
+    if (!gearSlot.item || !gearSlot.gems) {
+      return;
+    }
+
+    const socketCountToCheck = Math.min(
+      gearSlot.item.sockets.length,
+      gearSlot.gems.length
+    );
+
+    for (let index = 0; index < socketCountToCheck; index += 1) {
+      const gem = gearSlot.gems[index];
+      const socketColor = gearSlot.item.sockets[index];
+
+      if (!gem || gem.color === "Meta") {
+        continue;
+      }
+
+      if (!canGemFitSocket(gem, socketColor)) {
+        continue;
+      }
+
+      validRegularGems.push(gem);
+    }
+  });
+
+  return validRegularGems;
+}
+
+function getMetaRequirementProgress(metaGem: TbcGem, gear: EquippedSlot[]) {
+  const requirements = metaGem.metaRequirements ?? [];
+  const validRegularGems = getValidRegularGemsForMetaRequirements(gear);
+
+  return requirements.map((requirement) => {
+    const currentCount = validRegularGems.filter((gem) =>
+      gem.matchesSocketColors.includes(requirement.color)
+    ).length;
+
+    return {
+      color: requirement.color,
+      requiredCount: requirement.count,
+      currentCount,
+      isMet: currentCount >= requirement.count,
+    };
+  });
+}
+
+function isMetaGemActive(metaGem: TbcGem, gear: EquippedSlot[]): boolean {
+  if (metaGem.color !== "Meta") {
+    return true;
+  }
+
+  const progress = getMetaRequirementProgress(metaGem, gear);
+
+  if (progress.length === 0) {
+    return true;
+  }
+
+  return progress.every((requirement) => requirement.isMet);
+}
+
+function formatMetaRequirementProgress(
+  metaGem: TbcGem,
+  gear: EquippedSlot[]
+): string {
+  const progress = getMetaRequirementProgress(metaGem, gear);
+
+  if (progress.length === 0) {
+    return metaGem.metaRequirementDescription ?? "No requirement listed";
+  }
+
+  return progress
+    .map(
+      (requirement) =>
+        `${requirement.currentCount}/${requirement.requiredCount} ${requirement.color}`
+    )
+    .join(", ");
+}
+
 function App() {
   const [gear, setGear] = useState<EquippedSlot[]>(initialGear);
   const [selectedPhase, setSelectedPhase] = useState<number | undefined>(undefined);
@@ -302,8 +456,21 @@ function App() {
   const derivedTankStats = finalCharacterStats?.derivedTankStats;
 
   const selectedPhaseLabel =
-  phaseOptions.find((option) => option.value === selectedPhase)?.label ??
-  "All TBC";
+    phaseOptions.find((option) => option.value === selectedPhase)?.label ??
+    "All TBC";
+  
+  const gearColumns = useMemo(() => {
+    const gearWithIndexes = gear.map((gearSlot, index) => ({
+      gearSlot,
+      index,
+    }));
+
+    return [
+      gearWithIndexes.filter((_, index) => index % 3 === 0),
+      gearWithIndexes.filter((_, index) => index % 3 === 1),
+      gearWithIndexes.filter((_, index) => index % 3 === 2),
+    ];
+  }, [gear]);
 
   const filteredAvailableItems = useMemo(() => {
     const search = itemSearchTerm.trim().toLowerCase();
@@ -608,6 +775,152 @@ function App() {
     }
   }
 
+  function renderGearCard(gearSlot: EquippedSlot, index: number) {
+    const socketBonusSummary = gearSlot.item
+      ? formatStatSummary(gearSlot.item.socketBonus)
+      : "";
+
+    const socketBonusActive = gearSlot.item
+      ? isSocketBonusActive(gearSlot.item, gearSlot.gems)
+      : false;
+
+    const metaGems =
+      gearSlot.gems?.filter((gem): gem is TbcGem => gem?.color === "Meta") ?? [];
+
+    return (
+      <article
+        key={gearSlot.slotKey}
+        className={`gear-slot-card ${
+          gearSlot.item ? "gear-slot-card-equipped" : ""
+        }`}
+      >
+        <button
+          className="gear-slot gear-slot-main"
+          onClick={() => openItemPicker(index)}
+        >
+          <span className="gear-slot-topline">
+            <span className="gear-slot-label">{gearSlot.label}</span>
+            {gearSlot.item && <span className="gear-slot-edit">Change</span>}
+          </span>
+
+          <span className="gear-slot-content">
+            <ItemIcon item={gearSlot.item} />
+            <span className="gear-slot-item">
+              {gearSlot.item?.name ?? "Empty"}
+            </span>
+          </span>
+        </button>
+
+        {gearSlot.item && (
+          <div className="gear-card-details">
+            <div className="gear-detail-row">
+              <button
+                className={`gear-detail-chip ${
+                  gearSlot.enchant ? "gear-detail-chip-filled" : ""
+                }`}
+                onClick={() => openEnchantPicker(index)}
+              >
+                <span className="gear-detail-label">Enchant</span>
+                <span className="gear-detail-value">
+                  {gearSlot.enchant?.name ?? "Add"}
+                </span>
+              </button>
+
+              {gearSlot.enchant && (
+                <button
+                  className="compact-remove-button"
+                  onClick={() => removeEnchant(index)}
+                  aria-label={`Remove enchant from ${gearSlot.label}`}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
+            {gearSlot.item.sockets.length > 0 && (
+              <div className="socket-chip-list">
+                {gearSlot.item.sockets.map((socketColor, socketIndex) => {
+                  const selectedGem = gearSlot.gems?.[socketIndex] ?? null;
+                  const socketMatches = doesGemMatchSocket(
+                    selectedGem,
+                    socketColor
+                  );
+
+                  return (
+                    <div
+                      className="socket-chip-row"
+                      key={`${gearSlot.slotKey}-${socketIndex}`}
+                    >
+                      <button
+                        className={`socket-chip ${
+                          selectedGem ? "socket-chip-filled" : ""
+                        } ${selectedGem && socketMatches ? "socket-chip-matched" : ""}`}
+                        onClick={() => openGemPicker(index, socketIndex)}
+                      >
+                        <span className="socket-chip-label">
+                          {socketColor}
+                          {selectedGem && socketMatches ? " ✓" : ""}
+                        </span>
+                        <span className="socket-chip-value">
+                          {selectedGem?.name ?? "Add Gem"}
+                        </span>
+                      </button>
+
+                      {selectedGem && (
+                        <button
+                          className="compact-remove-button"
+                          onClick={() => removeGem(index, socketIndex)}
+                          aria-label={`Remove gem from ${gearSlot.label}`}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {(socketBonusSummary || metaGems.length > 0) && (
+              <div className="gear-status-row">
+                {socketBonusSummary && (
+                  <span
+                    className={`gear-status-pill ${
+                      socketBonusActive
+                        ? "gear-status-pill-good"
+                        : "gear-status-pill-muted"
+                    }`}
+                  >
+                    Bonus {socketBonusActive ? "✓" : "—"} {socketBonusSummary}
+                  </span>
+                )}
+
+                {metaGems.map((metaGem) => {
+                  const metaIsActive = isMetaGemActive(metaGem, gear);
+
+                  return (
+                    <span
+                      className={`gear-status-pill ${
+                        metaIsActive
+                          ? "gear-status-pill-good"
+                          : "gear-status-pill-warning"
+                      }`}
+                      key={metaGem.id}
+                      title={metaGem.name}
+                    >
+                      Meta {metaIsActive ? "✓" : "!"}:{" "}
+                      {formatMetaRequirementProgress(metaGem, gear)}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </article>
+    );
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -647,63 +960,10 @@ function App() {
           </div>
 
           <div className="gear-grid">
-            {gear.map((gearSlot, index) => (
-              <div key={`${gearSlot.label}-${index}`} className="gear-slot-card">
-                <button className="gear-slot gear-slot-main" onClick={() => openItemPicker(index)}>
-                  <span className="gear-slot-label">{gearSlot.label}</span>
-
-                  <span className="gear-slot-content">
-                    <ItemIcon item={gearSlot.item} />
-                    <span className="gear-slot-item">{gearSlot.item?.name ?? "Empty"}</span>
-                  </span>
-                </button>
-
-                {gearSlot.item && (
-                  <div className="gear-slot-actions">
-                    <button
-                      className="enchant-button"
-                      onClick={() => openEnchantPicker(index)}
-                    >
-                      {gearSlot.enchant ? gearSlot.enchant.name : "Add Enchant"}
-                    </button>
-
-                    {gearSlot.enchant && (
-                      <button
-                        className="remove-enchant-button"
-                        onClick={() => removeEnchant(index)}
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                )}
-                {gearSlot.item && gearSlot.item.sockets.length > 0 && (
-                  <div className="socket-list">
-                    {gearSlot.item.sockets.map((socketColor, socketIndex) => {
-                      const selectedGem = gearSlot.gems?.[socketIndex] ?? null;
-
-                      return (
-                        <div className="socket-row" key={`${gearSlot.slotKey}-${socketIndex}`}>
-                          <button
-                            className="gem-button"
-                            onClick={() => openGemPicker(index, socketIndex)}
-                          >
-                            <span className="socket-color">{socketColor}</span>
-                            <span>{selectedGem?.name ?? "Add Gem"}</span>
-                          </button>
-
-                          {selectedGem && (
-                            <button
-                              className="remove-gem-button"
-                              onClick={() => removeGem(index, socketIndex)}
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+            {gearColumns.map((gearColumn, columnIndex) => (
+              <div className="gear-column" key={`gear-column-${columnIndex}`}>
+                {gearColumn.map(({ gearSlot, index }) =>
+                  renderGearCard(gearSlot, index)
                 )}
               </div>
             ))}
@@ -711,31 +971,32 @@ function App() {
         </section>
 
         <section className="panel stats-panel">
-          <h2>Gear Stat Totals</h2>
+          <div className="panel-title-row compact-panel-title">
+            <h2>Gear Stat Totals</h2>
 
-          <div className="effect-toggle-row">
-            <label className="effect-toggle">
+            <label className="mini-toggle">
               <input
                 type="checkbox"
                 checked={includeHolyShield}
                 onChange={(event) => setIncludeHolyShield(event.target.checked)}
               />
-              <span>Include Holy Shield</span>
+              <span>Holy Shield</span>
             </label>
-
-            <span className="effect-note">
-              Adds +30% block chance to the crush table while active.
-            </span>
           </div>
+
+          <p className="panel-caption">
+            Gear totals include equipped items, enchants, active gems, and active socket
+            bonuses.
+          </p>
 
           {isCalculatingStats && <p className="muted">Calculating...</p>}
 
           {visibleStatRows.length === 0 ? (
             <p className="muted">Equip gear to see stat totals.</p>
           ) : (
-            <div className="stat-list">
+            <div className="compact-stat-grid">
               {visibleStatRows.map((stat) => (
-                <div className="stat-row" key={stat.label}>
+                <div className="compact-stat" key={stat.label}>
                   <span>{stat.label}</span>
                   <strong>{stat.value}</strong>
                 </div>
@@ -752,10 +1013,6 @@ function App() {
               ))}
             </div>
           )}
-
-          <p className="stat-note">
-            Gear only. Gems, enchants, socket bonuses, talents, buffs, and base character stats will be added later.
-          </p>
         </section>
 
         <section className="panel results-panel">
@@ -829,9 +1086,11 @@ function App() {
                 )}
               </div>
 
-              <div className="stat-list">
+              <h3 className="subsection-title">Core Stats</h3>
+
+              <div className="compact-stat-grid">
                 {visibleFinalStatRows.map((stat) => (
-                  <div className="stat-row" key={stat.label}>
+                  <div className="compact-stat" key={stat.label}>
                     <span>{stat.label}</span>
                     <strong>{stat.value}</strong>
                   </div>
@@ -842,7 +1101,7 @@ function App() {
                 <>
                   <h3 className="subsection-title">Tank Table</h3>
 
-                  <div className="stat-list">
+                  <div className="compact-stat-grid tank-table-grid">
                     <div className="stat-row">
                       <span>Defense Skill</span>
                       <strong>{derivedTankStats.defenseSkill}</strong>
@@ -891,9 +1150,9 @@ function App() {
               )}
 
               <p className="stat-note">
-                Final stats currently include base level 70 Protection Paladin stats
-                plus equipped gear. Gems, enchants, socket bonuses, talents, and buffs
-                will be added later.
+                Final stats include base level 70 Protection Paladin stats plus equipped
+                gear, enchants, active gems, and active socket bonuses. Talents, buffs, EHP,
+                and encounter settings will be added later.
               </p>
             </>
           )}
@@ -1148,6 +1407,9 @@ function App() {
                     </span>
                     {gem.effectDescription && (
                       <span className="item-details">{gem.effectDescription}</span>
+                    )}
+                    {gem.metaRequirementDescription && (
+                      <span className="item-details">{gem.metaRequirementDescription}</span>
                     )}
                   </div>
 

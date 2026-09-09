@@ -27,5 +27,7 @@ public class TbcGem
 
     public string? MetaRequirementDescription { get; set; }
 
+    public List<GemColorRequirement> MetaRequirements { get; set; } = [];
+
     public bool IsCustom { get; set; }
 }

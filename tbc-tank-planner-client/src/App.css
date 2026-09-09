@@ -509,3 +509,441 @@ button {
 .gem-toggle {
   margin-bottom: 16px;
 }
+
+.gem-button-matched {
+  border-color: #22c55e;
+}
+
+.socket-bonus {
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 7px 8px;
+  font-size: 12px;
+  background: #0f172a;
+}
+
+.socket-bonus-active {
+  color: #bbf7d0;
+  border-color: #22c55e;
+}
+
+.socket-bonus-inactive {
+  color: #9ca3af;
+}
+
+.meta-gem-status {
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 7px 8px;
+  font-size: 12px;
+  background: #0f172a;
+}
+
+.meta-gem-active {
+  color: #bbf7d0;
+  border-color: #22c55e;
+}
+
+.meta-gem-inactive {
+  color: #fde68a;
+  border-color: #facc15;
+}
+
+.meta-gem-requirement {
+  margin-top: 3px;
+  color: #9ca3af;
+}
+
+/* Compact layout pass */
+
+.app-shell {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 20px 24px;
+}
+
+.app-header {
+  margin-bottom: 18px;
+}
+
+.app-header h1 {
+  font-size: 28px;
+}
+
+.main-layout {
+  grid-template-columns: minmax(520px, 620px) minmax(300px, 360px) minmax(340px, 400px);
+  justify-content: center;
+  gap: 14px;
+}
+
+.panel {
+  padding: 14px;
+}
+
+.panel h2 {
+  font-size: 20px;
+}
+
+.compact-panel-title {
+  margin-bottom: 8px;
+}
+
+.panel-caption {
+  margin: 0 0 12px;
+  color: #9ca3af;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.gear-grid {
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 10px;
+}
+
+.gear-column {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.gear-slot-card {
+  display: grid;
+  gap: 7px;
+  border: 1px solid #374151;
+  background: #111827;
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.gear-slot-card:hover {
+  border-color: #4b5563;
+}
+
+.gear-slot-card-equipped {
+  background: #0f172a;
+}
+
+.gear-slot {
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  padding: 0;
+}
+
+.gear-slot:hover {
+  border-color: transparent;
+}
+
+.gear-slot-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.gear-slot-label {
+  margin: 0;
+  font-size: 12px;
+}
+
+.gear-slot-edit {
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.gear-slot-content {
+  gap: 8px;
+}
+
+.item-icon {
+  width: 30px;
+  height: 30px;
+}
+
+.gear-slot-item {
+  font-size: 14px;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gear-card-details {
+  display: grid;
+  gap: 6px;
+}
+
+.gear-detail-row,
+.socket-chip-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 26px;
+  gap: 5px;
+}
+
+.gear-detail-chip,
+.socket-chip {
+  min-width: 0;
+  border: 1px solid #374151;
+  background: #0b1120;
+  color: #d1d5db;
+  border-radius: 8px;
+  padding: 6px 7px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.gear-detail-chip:hover,
+.socket-chip:hover {
+  border-color: #facc15;
+}
+
+.gear-detail-chip-filled,
+.socket-chip-filled {
+  background: #111827;
+}
+
+.socket-chip-matched {
+  border-color: #22c55e;
+}
+
+.gear-detail-label,
+.socket-chip-label {
+  display: block;
+  color: #9ca3af;
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.gear-detail-value,
+.socket-chip-value {
+  display: block;
+  margin-top: 2px;
+  color: #f9fafb;
+  font-size: 11px;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compact-remove-button {
+  border: 1px solid #374151;
+  background: #111827;
+  color: #fca5a5;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.compact-remove-button:hover {
+  border-color: #f87171;
+  color: #fecaca;
+}
+
+.socket-chip-list {
+  display: grid;
+  gap: 5px;
+}
+
+.gear-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.gear-status-pill {
+  border: 1px solid #374151;
+  background: #0b1120;
+  border-radius: 999px;
+  padding: 4px 7px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.gear-status-pill-good {
+  color: #bbf7d0;
+  border-color: #22c55e;
+}
+
+.gear-status-pill-warning {
+  color: #fde68a;
+  border-color: #facc15;
+}
+
+.gear-status-pill-muted {
+  color: #9ca3af;
+}
+
+.mini-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #374151;
+  background: #111827;
+  color: #d1d5db;
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.mini-toggle input {
+  width: 14px;
+  height: 14px;
+}
+
+.compact-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.compact-stat {
+  border: 1px solid #374151;
+  background: #111827;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.compact-stat span {
+  display: block;
+  color: #9ca3af;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.compact-stat strong {
+  display: block;
+  margin-top: 4px;
+  color: #f9fafb;
+  font-size: 16px;
+}
+
+.tank-table-grid .stat-row {
+  display: block;
+  border: 1px solid #374151;
+  background: #111827;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.tank-table-grid .stat-row span {
+  display: block;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.tank-table-grid .stat-row strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 15px;
+}
+
+.summary-grid {
+  gap: 8px;
+}
+
+.summary-card {
+  padding: 9px;
+}
+
+.summary-card span {
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.summary-card strong {
+  font-size: 19px;
+}
+
+.status-card small {
+  font-size: 11px;
+}
+
+/* Wide dashboard layout pass */
+
+.app-shell {
+  width: min(100%, 1720px);
+  max-width: none;
+  margin: 0 auto;
+  padding: 20px 28px;
+}
+
+.main-layout {
+  grid-template-columns:
+    minmax(760px, 1.45fr)
+    minmax(300px, 0.65fr)
+    minmax(380px, 0.75fr);
+  justify-content: stretch;
+  align-items: start;
+  gap: 14px;
+}
+
+.gear-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stats-panel,
+.results-panel {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+}
+
+.results-panel {
+  min-width: 0;
+}
+
+.stats-panel {
+  min-width: 0;
+}
+
+.gear-slot-card-equipped {
+  border-color: #4b5563;
+}
+
+.gear-slot-card-equipped .gear-slot-item {
+  color: #ffffff;
+}
+
+.gear-status-pill {
+  max-width: 100%;
+}
+
+@media (max-width: 1500px) {
+  .main-layout {
+    grid-template-columns:
+      minmax(560px, 1.2fr)
+      minmax(280px, 0.8fr)
+      minmax(340px, 0.9fr);
+  }
+
+  .gear-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-panel,
+  .results-panel {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .gear-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

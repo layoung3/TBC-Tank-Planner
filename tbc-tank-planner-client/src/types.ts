@@ -101,7 +101,13 @@ export interface TbcGem {
   stats: StatBlock;
   effectDescription?: string | null;
   metaRequirementDescription?: string | null;
+  metaRequirements?: GemColorRequirement[];
   isCustom: boolean;
+}
+
+export interface GemColorRequirement {
+  color: SocketColor;
+  count: number;
 }
 
 export interface GearStatsRequest {
