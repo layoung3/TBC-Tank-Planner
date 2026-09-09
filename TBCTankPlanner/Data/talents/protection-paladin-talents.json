@@ -1,0 +1,469 @@
+[
+  {
+    "class": "ProtectionPaladin",
+    "treeKey": "holy",
+    "name": "Holy",
+    "talents": [
+      {
+        "key": "paladin_holy_divine_intellect",
+        "name": "Divine Intellect",
+        "treeKey": "holy",
+        "row": 1,
+        "column": 2,
+        "maxRank": 5,
+        "description": "Increases your total Intellect.",
+        "effectKeys": [ "Paladin_DivineIntellect_IntellectPercent" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "+2% Intellect"
+          },
+          {
+            "rank": 2,
+            "description": "+4% Intellect"
+          },
+          {
+            "rank": 3,
+            "description": "+6% Intellect"
+          },
+          {
+            "rank": 4,
+            "description": "+8% Intellect"
+          },
+          {
+            "rank": 5,
+            "description": "+10% Intellect"
+          }
+        ]
+      },
+      {
+        "key": "paladin_holy_spiritual_focus",
+        "name": "Spiritual Focus",
+        "treeKey": "holy",
+        "row": 2,
+        "column": 2,
+        "maxRank": 5,
+        "description": "Gives your Flash of Light and Holy Light spells a chance to avoid interruption caused by damage.",
+        "effectKeys": [ "Paladin_SpiritualFocus_HealingPushbackReduction" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "14% chance"
+          },
+          {
+            "rank": 2,
+            "description": "28% chance"
+          },
+          {
+            "rank": 3,
+            "description": "42% chance"
+          },
+          {
+            "rank": 4,
+            "description": "56% chance"
+          },
+          {
+            "rank": 5,
+            "description": "70% chance"
+          }
+        ]
+      },
+      {
+        "key": "paladin_holy_consecration",
+        "name": "Consecration",
+        "treeKey": "holy",
+        "row": 3,
+        "column": 2,
+        "maxRank": 1,
+        "description": "Consecrates the land beneath the paladin, doing Holy damage over time to enemies who enter the area.",
+        "effectKeys": [ "Paladin_Consecration_AbilityUnlocked" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "Unlocks Consecration"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "class": "ProtectionPaladin",
+    "treeKey": "protection",
+    "name": "Protection",
+    "talents": [
+      {
+        "key": "paladin_protection_redoubt",
+        "name": "Redoubt",
+        "treeKey": "protection",
+        "row": 1,
+        "column": 2,
+        "maxRank": 5,
+        "description": "Increases your chance to block after being the victim of a damaging melee or ranged attack.",
+        "effectKeys": [ "Paladin_Redoubt_BlockChanceProc" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "+6% block chance while active"
+          },
+          {
+            "rank": 2,
+            "description": "+12% block chance while active"
+          },
+          {
+            "rank": 3,
+            "description": "+18% block chance while active"
+          },
+          {
+            "rank": 4,
+            "description": "+24% block chance while active"
+          },
+          {
+            "rank": 5,
+            "description": "+30% block chance while active"
+          }
+        ]
+      },
+      {
+        "key": "paladin_protection_toughness",
+        "name": "Toughness",
+        "treeKey": "protection",
+        "row": 2,
+        "column": 1,
+        "maxRank": 5,
+        "description": "Increases armor value from items.",
+        "effectKeys": [ "Paladin_Toughness_ArmorFromItemsPercent" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "+2% armor from items"
+          },
+          {
+            "rank": 2,
+            "description": "+4% armor from items"
+          },
+          {
+            "rank": 3,
+            "description": "+6% armor from items"
+          },
+          {
+            "rank": 4,
+            "description": "+8% armor from items"
+          },
+          {
+            "rank": 5,
+            "description": "+10% armor from items"
+          }
+        ]
+      },
+      {
+        "key": "paladin_protection_blessing_of_kings",
+        "name": "Blessing of Kings",
+        "treeKey": "protection",
+        "row": 3,
+        "column": 1,
+        "maxRank": 1,
+        "description": "Places a Blessing on the friendly target, increasing total stats.",
+        "effectKeys": [ "Paladin_BlessingOfKings_AbilityUnlocked" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "Unlocks Blessing of Kings"
+          }
+        ]
+      },
+      {
+        "key": "paladin_protection_improved_righteous_fury",
+        "name": "Improved Righteous Fury",
+        "treeKey": "protection",
+        "row": 3,
+        "column": 2,
+        "maxRank": 3,
+        "description": "Increases threat caused by Righteous Fury and reduces all damage taken while Righteous Fury is active.",
+        "effectKeys": [
+          "Paladin_ImprovedRighteousFury_ThreatPercent",
+          "Paladin_ImprovedRighteousFury_DamageTakenReduction"
+        ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "+16% Righteous Fury threat, -2% damage taken"
+          },
+          {
+            "rank": 2,
+            "description": "+33% Righteous Fury threat, -4% damage taken"
+          },
+          {
+            "rank": 3,
+            "description": "+50% Righteous Fury threat, -6% damage taken"
+          }
+        ]
+      },
+      {
+        "key": "paladin_protection_shield_specialization",
+        "name": "Shield Specialization",
+        "treeKey": "protection",
+        "row": 3,
+        "column": 3,
+        "maxRank": 3,
+        "description": "Increases the amount of damage absorbed by your shield.",
+        "effectKeys": [ "Paladin_ShieldSpecialization_BlockValuePercent" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "+10% shield block amount"
+          },
+          {
+            "rank": 2,
+            "description": "+20% shield block amount"
+          },
+          {
+            "rank": 3,
+            "description": "+30% shield block amount"
+          }
+        ]
+      },
+      {
+        "key": "paladin_protection_anticipation",
+        "name": "Anticipation",
+        "treeKey": "protection",
+        "row": 4,
+        "column": 3,
+        "maxRank": 5,
+        "description": "Increases your Defense skill.",
+        "effectKeys": [ "Paladin_Anticipation_DefenseSkill" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "+4 Defense skill"
+          },
+          {
+            "rank": 2,
+            "description": "+8 Defense skill"
+          },
+          {
+            "rank": 3,
+            "description": "+12 Defense skill"
+          },
+          {
+            "rank": 4,
+            "description": "+16 Defense skill"
+          },
+          {
+            "rank": 5,
+            "description": "+20 Defense skill"
+          }
+        ]
+      },
+      {
+        "key": "paladin_protection_holy_shield",
+        "name": "Holy Shield",
+        "treeKey": "protection",
+        "row": 7,
+        "column": 2,
+        "maxRank": 1,
+        "description": "Increases chance to block and deals Holy damage for each attack blocked while active.",
+        "effectKeys": [ "Paladin_HolyShield_AbilityUnlocked" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "Unlocks Holy Shield"
+          }
+        ]
+      },
+      {
+        "key": "paladin_protection_sacred_duty",
+        "name": "Sacred Duty",
+        "treeKey": "protection",
+        "row": 8,
+        "column": 3,
+        "maxRank": 2,
+        "description": "Increases total Stamina.",
+        "effectKeys": [ "Paladin_SacredDuty_StaminaPercent" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "+3% Stamina"
+          },
+          {
+            "rank": 2,
+            "description": "+6% Stamina"
+          }
+        ]
+      },
+      {
+        "key": "paladin_protection_combat_expertise",
+        "name": "Combat Expertise",
+        "treeKey": "protection",
+        "row": 9,
+        "column": 2,
+        "maxRank": 5,
+        "description": "Increases Expertise and total Stamina.",
+        "effectKeys": [
+          "Paladin_CombatExpertise_ExpertiseSkill",
+          "Paladin_CombatExpertise_StaminaPercent"
+        ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "+1 Expertise, +2% Stamina"
+          },
+          {
+            "rank": 2,
+            "description": "+2 Expertise, +4% Stamina"
+          },
+          {
+            "rank": 3,
+            "description": "+3 Expertise, +6% Stamina"
+          },
+          {
+            "rank": 4,
+            "description": "+4 Expertise, +8% Stamina"
+          },
+          {
+            "rank": 5,
+            "description": "+5 Expertise, +10% Stamina"
+          }
+        ]
+      },
+      {
+        "key": "paladin_protection_avengers_shield",
+        "name": "Avenger's Shield",
+        "treeKey": "protection",
+        "row": 11,
+        "column": 2,
+        "maxRank": 1,
+        "description": "Hurls a holy shield at the enemy, dealing Holy damage, dazing, and jumping to nearby targets.",
+        "effectKeys": [ "Paladin_AvengersShield_AbilityUnlocked" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "Unlocks Avenger's Shield"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "class": "ProtectionPaladin",
+    "treeKey": "retribution",
+    "name": "Retribution",
+    "talents": [
+      {
+        "key": "paladin_retribution_benediction",
+        "name": "Benediction",
+        "treeKey": "retribution",
+        "row": 1,
+        "column": 2,
+        "maxRank": 5,
+        "description": "Reduces the Mana cost of your instant cast Judgement and Seal spells.",
+        "effectKeys": [ "Paladin_Benediction_SealJudgementManaReduction" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "-3% Mana cost"
+          },
+          {
+            "rank": 2,
+            "description": "-6% Mana cost"
+          },
+          {
+            "rank": 3,
+            "description": "-9% Mana cost"
+          },
+          {
+            "rank": 4,
+            "description": "-12% Mana cost"
+          },
+          {
+            "rank": 5,
+            "description": "-15% Mana cost"
+          }
+        ]
+      },
+      {
+        "key": "paladin_retribution_deflection",
+        "name": "Deflection",
+        "treeKey": "retribution",
+        "row": 1,
+        "column": 3,
+        "maxRank": 5,
+        "description": "Increases your Parry chance.",
+        "effectKeys": [ "Paladin_Deflection_ParryPercent" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "+1% Parry"
+          },
+          {
+            "rank": 2,
+            "description": "+2% Parry"
+          },
+          {
+            "rank": 3,
+            "description": "+3% Parry"
+          },
+          {
+            "rank": 4,
+            "description": "+4% Parry"
+          },
+          {
+            "rank": 5,
+            "description": "+5% Parry"
+          }
+        ]
+      },
+      {
+        "key": "paladin_retribution_improved_judgement",
+        "name": "Improved Judgement",
+        "treeKey": "retribution",
+        "row": 2,
+        "column": 2,
+        "maxRank": 2,
+        "description": "Decreases the cooldown of your Judgement spell.",
+        "effectKeys": [ "Paladin_ImprovedJudgement_CooldownReduction" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "-1 sec cooldown"
+          },
+          {
+            "rank": 2,
+            "description": "-2 sec cooldown"
+          }
+        ]
+      },
+      {
+        "key": "paladin_retribution_one_handed_weapon_specialization",
+        "name": "One-Handed Weapon Specialization",
+        "treeKey": "retribution",
+        "row": 6,
+        "column": 3,
+        "maxRank": 5,
+        "description": "Increases all damage you deal when a one-handed melee weapon is equipped.",
+        "effectKeys": [ "Paladin_OneHandedWeaponSpecialization_DamagePercent" ],
+        "rankEffects": [
+          {
+            "rank": 1,
+            "description": "+1% damage"
+          },
+          {
+            "rank": 2,
+            "description": "+2% damage"
+          },
+          {
+            "rank": 3,
+            "description": "+3% damage"
+          },
+          {
+            "rank": 4,
+            "description": "+4% damage"
+          },
+          {
+            "rank": 5,
+            "description": "+5% damage"
+          }
+        ]
+      }
+    ]
+  }
+]

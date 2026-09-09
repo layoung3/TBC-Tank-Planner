@@ -1,4 +1,5 @@
 ﻿using TbcTankPlanner.Domain.Characters;
+using TbcTankPlanner.Domain.Talents;
 
 namespace TbcTankPlanner.Domain.Calculations;
 
@@ -9,6 +10,8 @@ public class FinalCharacterStatsRequest
     public List<EquippedGearItem> EquippedGear { get; set; } = [];
 
     public List<int> EquippedItemIds { get; set; } = [];
+
+    public CharacterTalentBuild TalentBuild { get; set; } = new();
 
     public bool IncludeHolyShield { get; set; }
 
