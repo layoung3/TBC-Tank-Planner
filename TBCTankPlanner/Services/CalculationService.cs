@@ -177,6 +177,12 @@ public class CalculationService
             request.Encounter.AttackerLevel
         );
 
+        var magicMitigationStats = CalculateMagicMitigationStats(
+            convertedStats.Health,
+            convertedStats.Stats,
+            request.Encounter.AttackerLevel
+        );
+
         var response = new FinalCharacterStatsResponse
         {
             Race = request.Race,
@@ -188,6 +194,7 @@ public class CalculationService
             Health = convertedStats.Health,
             Mana = convertedStats.Mana,
             PhysicalMitigationStats = physicalMitigationStats,
+            MagicMitigationStats = magicMitigationStats,
             Warnings = gearStatsResponse.Warnings
         };
 
@@ -758,6 +765,96 @@ public class CalculationService
             PhysicalEffectiveHealth = physicalEffectiveHealth,
             ArmorCap = armorCap,
             ArmorNeededForCap = Math.Max(armorCap - armor, 0)
+        };
+    }
+
+    private static MagicMitigationStats CalculateMagicMitigationStats(
+        int health,
+        StatBlock finalStats,
+        int attackerLevel
+    )
+    {
+        return new MagicMitigationStats
+        {
+            AttackerLevel = attackerLevel,
+            Schools =
+            [
+                CalculateResistanceMitigationStats(
+                "Arcane",
+                finalStats.ArcaneResistance,
+                health,
+                attackerLevel
+            ),
+            CalculateResistanceMitigationStats(
+                "Fire",
+                finalStats.FireResistance,
+                health,
+                attackerLevel
+            ),
+            CalculateResistanceMitigationStats(
+                "Frost",
+                finalStats.FrostResistance,
+                health,
+                attackerLevel
+            ),
+            CalculateResistanceMitigationStats(
+                "Nature",
+                finalStats.NatureResistance,
+                health,
+                attackerLevel
+            ),
+            CalculateResistanceMitigationStats(
+                "Shadow",
+                finalStats.ShadowResistance,
+                health,
+                attackerLevel
+            )
+            ]
+        };
+    }
+
+    private static ResistanceMitigationStats CalculateResistanceMitigationStats(
+        string school,
+        int resistance,
+        int health,
+        int attackerLevel
+    )
+    {
+        const decimal maxAverageDamageReductionPercent = 75m;
+
+        var resistanceCap = Math.Max(attackerLevel * 5, 0);
+        var cappedResistance = Math.Clamp(resistance, 0, resistanceCap);
+
+        var averageDamageReductionPercent = 0m;
+
+        if (resistanceCap > 0)
+        {
+            averageDamageReductionPercent =
+                cappedResistance / (decimal)resistanceCap *
+                maxAverageDamageReductionPercent;
+        }
+
+        averageDamageReductionPercent = Math.Min(
+            averageDamageReductionPercent,
+            maxAverageDamageReductionPercent
+        );
+
+        var damageTakenMultiplier = 1m - averageDamageReductionPercent / 100m;
+
+        var magicEffectiveHealth =
+            damageTakenMultiplier > 0
+                ? (int)Math.Floor(health / damageTakenMultiplier)
+                : health;
+
+        return new ResistanceMitigationStats
+        {
+            School = school,
+            Resistance = resistance,
+            ResistanceCap = resistanceCap,
+            ResistanceNeededForCap = Math.Max(resistanceCap - resistance, 0),
+            AverageDamageReductionPercent = RoundPercent(averageDamageReductionPercent),
+            DamageTakenMultiplier = RoundPercent(damageTakenMultiplier),
+            MagicEffectiveHealth = magicEffectiveHealth
         };
     }
 

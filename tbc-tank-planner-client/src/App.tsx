@@ -509,6 +509,7 @@ function App() {
 
   const derivedTankStats = finalCharacterStats?.derivedTankStats;
   const physicalMitigationStats = finalCharacterStats?.physicalMitigationStats;
+  const magicMitigationStats = finalCharacterStats?.magicMitigationStats;
 
   const selectedPhaseLabel =
     phaseOptions.find((option) => option.value === selectedPhase)?.label ??
@@ -1126,6 +1127,20 @@ function App() {
                   </>
                 )}
 
+                {magicMitigationStats && (
+                  <div className="summary-card">
+                    <span>Best Magic EHP</span>
+                    <strong>
+                      {Math.max(
+                        ...magicMitigationStats.schools.map(
+                          (school) => school.magicEffectiveHealth
+                        )
+                      ).toLocaleString()}
+                    </strong>
+                    <small>Highest current resistance school</small>
+                  </div>
+                )}
+
                 {derivedTankStats && (
                   <>
                     <div
@@ -1198,6 +1213,27 @@ function App() {
                         {physicalMitigationStats.armorNeededForCap.toLocaleString()}
                       </strong>
                     </div>
+                  </div>
+                </>
+              )}
+
+              {magicMitigationStats && (
+                <>
+                  <h3 className="subsection-title">Resistance EHP</h3>
+
+                  <div className="compact-stat-grid">
+                    {magicMitigationStats.schools.map((school) => (
+                      <div className="compact-stat" key={school.school}>
+                        <span>
+                          {school.school} — {school.resistance}/{school.resistanceCap}
+                        </span>
+                        <strong>{school.magicEffectiveHealth.toLocaleString()}</strong>
+                        <small>
+                          {school.averageDamageReductionPercent}% avg reduction •{" "}
+                          {school.resistanceNeededForCap} to cap
+                        </small>
+                      </div>
+                    ))}
                   </div>
                 </>
               )}

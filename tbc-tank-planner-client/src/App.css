@@ -925,6 +925,14 @@ button {
   font-size: 11px;
 }
 
+.compact-stat small {
+  display: block;
+  margin-top: 4px;
+  color: #9ca3af;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
 @media (max-width: 1500px) {
   .main-layout {
     grid-template-columns:

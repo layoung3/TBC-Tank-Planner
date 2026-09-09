@@ -22,5 +22,7 @@ public class FinalCharacterStatsResponse
 
     public PhysicalMitigationStats PhysicalMitigationStats { get; set; } = new();
 
+    public MagicMitigationStats MagicMitigationStats { get; set; } = new();
+
     public List<string> Warnings { get; set; } = [];
 }

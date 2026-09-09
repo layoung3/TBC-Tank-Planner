@@ -141,6 +141,21 @@ export interface PhysicalMitigationStats {
   armorNeededForCap: number;
 }
 
+export interface ResistanceMitigationStats {
+  school: string;
+  resistance: number;
+  resistanceCap: number;
+  resistanceNeededForCap: number;
+  averageDamageReductionPercent: number;
+  damageTakenMultiplier: number;
+  magicEffectiveHealth: number;
+}
+
+export interface MagicMitigationStats {
+  attackerLevel: number;
+  schools: ResistanceMitigationStats[];
+}
+
 export interface FinalCharacterStatsRequest {
   race: CharacterRace;
   equippedGear: EquippedGearItem[];
@@ -156,6 +171,7 @@ export interface FinalCharacterStatsResponse {
   finalStats: StatBlock;
   derivedTankStats: DerivedTankStats;
   physicalMitigationStats: PhysicalMitigationStats;
+  magicMitigationStats: MagicMitigationStats;
   warnings: string[];
 }
 
