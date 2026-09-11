@@ -4,6 +4,7 @@ using TbcTankPlanner.Domain.Gems;
 using TbcTankPlanner.Domain.Items;
 using TbcTankPlanner.Domain.ItemSets;
 using TbcTankPlanner.Domain.Stats;
+using TbcTankPlanner.Domain.Talents;
 
 namespace TbcTankPlanner.Services;
 
@@ -183,27 +184,43 @@ public class CalculationService
         AddStats(rawFinalStats, baseStats.Stats);
         AddStats(rawFinalStats, gearStatsResponse.GearStats);
 
+        var talentModifiers = BuildTalentModifiers(
+            request.TalentBuild,
+            request.IncludeRighteousFury
+        );
+
+        var includeHolyShield =
+            request.IncludeHolyShield &&
+            GetTalentRank(
+                request.TalentBuild,
+                "paladin_protection_holy_shield",
+                1
+            ) > 0;
+
         var convertedStats = ApplyStatConversions(
             baseStats,
             rawFinalStats,
-            new StatConversionModifiers()
+            talentModifiers
         );
 
         var derivedTankStats = CalculateDerivedTankStats(
             convertedStats.Stats,
-            request.IncludeHolyShield
+            includeHolyShield,
+            talentModifiers
         );
 
         var physicalMitigationStats = CalculatePhysicalMitigationStats(
             convertedStats.Health,
             convertedStats.Stats,
-            request.Encounter.AttackerLevel
+            request.Encounter.AttackerLevel,
+            talentModifiers.GlobalDamageTakenMultiplier
         );
 
         var magicMitigationStats = CalculateMagicMitigationStats(
             convertedStats.Health,
             convertedStats.Stats,
-            request.Encounter.AttackerLevel
+            request.Encounter.AttackerLevel,
+            talentModifiers.GlobalDamageTakenMultiplier
         );
 
         var response = new FinalCharacterStatsResponse
@@ -294,8 +311,11 @@ public class CalculationService
     }
 
     private static DerivedTankStats CalculateDerivedTankStats(
-    StatBlock finalStats, bool includeHolyShield
-    ){
+        StatBlock finalStats,
+        bool includeHolyShield,
+        StatConversionModifiers modifiers
+    )
+    {
         const decimal baseDefenseSkill = 350m;
         const decimal defenseRatingPerSkill = 2.3654m;
 
@@ -318,7 +338,10 @@ public class CalculationService
         const decimal baseBlock = 5.0m;
 
         var defenseSkillFromRating = Math.Floor(finalStats.DefenseRating / defenseRatingPerSkill);
-        var defenseSkill = baseDefenseSkill + defenseSkillFromRating;
+        var defenseSkill =
+            baseDefenseSkill +
+            defenseSkillFromRating +
+            modifiers.DefenseSkillBonus;
 
         var defenseBonusSkill = defenseSkill - baseDefenseSkill;
 
@@ -332,31 +355,37 @@ public class CalculationService
 
         // Paladin has no passive crit-immunity talent like feral druid.
         // Keep this field now because we will need it for druids later.
-        const decimal critReductionFromTalents = 0m;
+        var critReductionFromTalents = modifiers.CritReductionPercentBonus;
 
         var totalCritReduction =
             critReductionFromDefense +
             critReductionFromResilience +
             critReductionFromTalents;
 
-        var missPercent = baseMissVsBoss + defenseAvoidanceBonusPercent;
+        var missPercent =
+            baseMissVsBoss +
+            defenseAvoidanceBonusPercent +
+            modifiers.MissPercentBonus;
         var dodgeFromAgility = finalStats.Agility / agilityPerDodgePercent;
 
         var dodgePercent =
             baseDodge +
             dodgeFromAgility +
             defenseAvoidanceBonusPercent +
-            finalStats.DodgeRating / dodgeRatingPerPercent;
+            finalStats.DodgeRating / dodgeRatingPerPercent +
+            modifiers.DodgePercentBonus;
 
         var parryPercent =
             baseParry +
             defenseAvoidanceBonusPercent +
-            finalStats.ParryRating / parryRatingPerPercent;
+            finalStats.ParryRating / parryRatingPerPercent +
+            modifiers.ParryPercentBonus;
 
         var blockPercent =
             baseBlock +
             defenseAvoidanceBonusPercent +
-            finalStats.BlockRating / blockRatingPerPercent;
+            finalStats.BlockRating / blockRatingPerPercent +
+            modifiers.BlockPercentBonus;
 
         if (includeHolyShield)
         {
@@ -401,6 +430,106 @@ public class CalculationService
         };
     }
 
+
+    private static StatConversionModifiers BuildTalentModifiers(
+        CharacterTalentBuild talentBuild,
+        bool includeRighteousFury
+    )
+    {
+        var anticipationRanks = GetTalentRank(
+            talentBuild,
+            "paladin_protection_anticipation",
+            5
+        );
+
+        var toughnessRanks = GetTalentRank(
+            talentBuild,
+            "paladin_protection_toughness",
+            5
+        );
+
+        var shieldSpecializationRanks = GetTalentRank(
+            talentBuild,
+            "paladin_protection_shield_specialization",
+            3
+        );
+
+        var improvedRighteousFuryRanks = GetTalentRank(
+            talentBuild,
+            "paladin_protection_improved_righteous_fury",
+            3
+        );
+
+        var sacredDutyRanks = GetTalentRank(
+            talentBuild,
+            "paladin_protection_sacred_duty",
+            2
+        );
+
+        var combatExpertiseRanks = GetTalentRank(
+            talentBuild,
+            "paladin_protection_combat_expertise",
+            5
+        );
+
+        var deflectionRanks = GetTalentRank(
+            talentBuild,
+            "paladin_retribution_deflection",
+            5
+        );
+
+        var oneHandedWeaponSpecializationRanks = GetTalentRank(
+            talentBuild,
+            "paladin_retribution_one_handed_weapon_specialization",
+            5
+        );
+
+        var divineIntellectRanks = GetTalentRank(
+            talentBuild,
+            "paladin_holy_divine_intellect",
+            5
+        );
+
+        var staminaMultiplier = 1m;
+        staminaMultiplier *= 1m + sacredDutyRanks * 0.03m;
+        staminaMultiplier *= 1m + combatExpertiseRanks * 0.02m;
+
+        return new StatConversionModifiers
+        {
+            StaminaMultiplier = staminaMultiplier,
+            IntellectMultiplier = 1m + divineIntellectRanks * 0.02m,
+
+            ArmorMultiplier = 1m + toughnessRanks * 0.02m,
+
+            DefenseSkillBonus = anticipationRanks * 4,
+            ParryPercentBonus = deflectionRanks * 1m,
+            BlockValueMultiplier = 1m + shieldSpecializationRanks * 0.10m,
+
+            ExpertiseSkillBonus = combatExpertiseRanks,
+
+            GlobalDamageTakenMultiplier = includeRighteousFury
+                ? 1m - improvedRighteousFuryRanks * 0.02m
+                : 1m,
+
+            DamageDoneMultiplier =
+                1m + oneHandedWeaponSpecializationRanks * 0.01m
+        };
+    }
+
+    private static int GetTalentRank(
+        CharacterTalentBuild talentBuild,
+        string talentKey,
+        int maxRank
+    )
+    {
+        if (!talentBuild.TalentRanks.TryGetValue(talentKey, out var rank))
+        {
+            return 0;
+        }
+
+        return Math.Clamp(rank, 0, maxRank);
+    }
+
     private static ConvertedCharacterStats ApplyStatConversions(
         CharacterBaseStats baseStats,
         StatBlock rawStats,
@@ -432,13 +561,21 @@ public class CalculationService
         var attackPowerFromStrength =
             (modifiedStats.Strength - baseStats.Stats.Strength) * 2;
 
-        modifiedStats.Armor =
-            ApplyMultiplier(
-                modifiedStats.Armor + armorFromAgility + modifiers.FlatArmorBonus,
-                modifiers.ArmorMultiplier
-            );
+        var armorFromItemsAndBonuses = modifiedStats.Armor + modifiers.FlatArmorBonus;
+
+        var armorFromItemsAfterMultiplier = ApplyMultiplier(
+            armorFromItemsAndBonuses,
+            modifiers.ArmorMultiplier
+        );
+
+        modifiedStats.Armor = armorFromItemsAfterMultiplier + armorFromAgility;
 
         modifiedStats.BlockValue += blockValueFromStrength;
+        modifiedStats.BlockValue = ApplyMultiplier(
+            modifiedStats.BlockValue,
+            modifiers.BlockValueMultiplier
+        );
+
         modifiedStats.AttackPower += attackPowerFromStrength;
 
         var healthBeforeMultiplier =
@@ -792,7 +929,8 @@ public class CalculationService
     private static PhysicalMitigationStats CalculatePhysicalMitigationStats(
         int health,
         StatBlock finalStats,
-        int attackerLevel
+        int attackerLevel,
+        decimal globalDamageTakenMultiplier
     )
     {
         const decimal maxArmorDamageReductionPercent = 75m;
@@ -815,7 +953,9 @@ public class CalculationService
 
         armorDamageReductionPercent = Math.Max(armorDamageReductionPercent, 0m);
 
-        var damageTakenMultiplier = 1m - armorDamageReductionPercent / 100m;
+        var damageTakenMultiplier =
+            (1m - armorDamageReductionPercent / 100m) *
+            globalDamageTakenMultiplier;
 
         var physicalEffectiveHealth =
             damageTakenMultiplier > 0
@@ -842,7 +982,8 @@ public class CalculationService
     private static MagicMitigationStats CalculateMagicMitigationStats(
         int health,
         StatBlock finalStats,
-        int attackerLevel
+        int attackerLevel,
+        decimal globalDamageTakenMultiplier
     )
     {
         return new MagicMitigationStats
@@ -854,31 +995,36 @@ public class CalculationService
                 "Arcane",
                 finalStats.ArcaneResistance,
                 health,
-                attackerLevel
+                attackerLevel,
+                globalDamageTakenMultiplier
             ),
             CalculateResistanceMitigationStats(
                 "Fire",
                 finalStats.FireResistance,
                 health,
-                attackerLevel
+                attackerLevel,
+                globalDamageTakenMultiplier
             ),
             CalculateResistanceMitigationStats(
                 "Frost",
                 finalStats.FrostResistance,
                 health,
-                attackerLevel
+                attackerLevel,
+                globalDamageTakenMultiplier
             ),
             CalculateResistanceMitigationStats(
                 "Nature",
                 finalStats.NatureResistance,
                 health,
-                attackerLevel
+                attackerLevel,
+                globalDamageTakenMultiplier
             ),
             CalculateResistanceMitigationStats(
                 "Shadow",
                 finalStats.ShadowResistance,
                 health,
-                attackerLevel
+                attackerLevel,
+                globalDamageTakenMultiplier
             )
             ]
         };
@@ -888,7 +1034,8 @@ public class CalculationService
         string school,
         int resistance,
         int health,
-        int attackerLevel
+        int attackerLevel,
+        decimal globalDamageTakenMultiplier
     )
     {
         const decimal maxAverageDamageReductionPercent = 75m;
@@ -910,7 +1057,9 @@ public class CalculationService
             maxAverageDamageReductionPercent
         );
 
-        var damageTakenMultiplier = 1m - averageDamageReductionPercent / 100m;
+        var damageTakenMultiplier =
+            (1m - averageDamageReductionPercent / 100m) *
+            globalDamageTakenMultiplier;
 
         var magicEffectiveHealth =
             damageTakenMultiplier > 0

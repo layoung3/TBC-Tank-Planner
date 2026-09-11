@@ -15,5 +15,7 @@ public class FinalCharacterStatsRequest
 
     public bool IncludeHolyShield { get; set; }
 
+    public bool IncludeRighteousFury { get; set; } = true;
+
     public EncounterSettings Encounter { get; set; } = new();
 }

@@ -15,9 +15,16 @@ public class StatConversionModifiers
     public int FlatManaBonus { get; set; }
     public int FlatArmorBonus { get; set; }
 
+    public int DefenseSkillBonus { get; set; }
+    public int ExpertiseSkillBonus { get; set; }
+
     public decimal DodgePercentBonus { get; set; }
     public decimal ParryPercentBonus { get; set; }
     public decimal BlockPercentBonus { get; set; }
     public decimal MissPercentBonus { get; set; }
     public decimal CritReductionPercentBonus { get; set; }
+
+    public decimal BlockValueMultiplier { get; set; } = 1m;
+    public decimal GlobalDamageTakenMultiplier { get; set; } = 1m;
+    public decimal DamageDoneMultiplier { get; set; } = 1m;
 }
