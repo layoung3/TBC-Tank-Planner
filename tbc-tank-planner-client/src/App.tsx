@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { calculateFinalCharacterStats, calculateGearStats } from "./api";
+import { useState } from "react";
 import { BuildTabs } from "./components/BuildTabs";
 import { ItemPickerModal } from "./components/ItemPickerModal";
 import { EnchantPickerModal } from "./components/EnchantPickerModal";
@@ -11,94 +10,19 @@ import { TalentsTab } from "./components/TalentsTab";
 import { getBuildTabLabel, phaseOptions } from "./config/plannerOptions";
 import { useGearPlannerState } from "./hooks/useGearPlannerState";
 import { useTalentPlannerState } from "./hooks/useTalentPlannerState";
+import { useTankCalculations } from "./hooks/useTankCalculations";
 import type { BuildTab } from "./models/plannerModels";
-import type {
-  CharacterRace,
-  ActiveItemSetBonus,
-  FinalCharacterStatsResponse,
-  StatBlock,
-} from "./types";
-import { createEmptyStats } from "./utils/statFormatting";
 import "./App.css";
 
 function App() {
   const gearPlanner = useGearPlannerState();
   const talentPlanner = useTalentPlannerState();
-
-  const [gearStatTotals, setGearStatTotals] = useState<StatBlock>(
-    createEmptyStats()
-  );
-  const [calculationWarnings, setCalculationWarnings] = useState<string[]>([]);
-  const [activeGearSetBonuses, setActiveGearSetBonuses] = useState<
-    ActiveItemSetBonus[]
-  >([]);
-  const [isCalculatingStats, setIsCalculatingStats] = useState(false);
-  const [selectedRace, setSelectedRace] = useState<CharacterRace>("BloodElf");
-  const [includeHolyShield, setIncludeHolyShield] = useState(true);
-
-  const [finalCharacterStats, setFinalCharacterStats] =
-    useState<FinalCharacterStatsResponse | null>(null);
-
-  const [isCalculatingFinalStats, setIsCalculatingFinalStats] = useState(false);
-  const [finalStatsError, setFinalStatsError] = useState<string | null>(null);
+  const tankCalculations = useTankCalculations({
+    equippedGear: gearPlanner.equippedGear,
+    selectedTalentBuild: talentPlanner.selectedTalentBuild,
+  });
 
   const [activeBuildTab, setActiveBuildTab] = useState<BuildTab>("gear");
-
-  useEffect(() => {
-    async function updateGearStats() {
-      if (gearPlanner.equippedGear.length === 0) {
-        setGearStatTotals(createEmptyStats());
-        setCalculationWarnings([]);
-        setActiveGearSetBonuses([]);
-        return;
-      }
-
-      try {
-        setIsCalculatingStats(true);
-
-        const result = await calculateGearStats(gearPlanner.equippedGear);
-
-        setGearStatTotals(result.gearStats);
-        setCalculationWarnings(result.warnings);
-        setActiveGearSetBonuses(result.activeSetBonuses ?? []);
-      } catch {
-        setCalculationWarnings(["Unable to calculate gear stats."]);
-      } finally {
-        setIsCalculatingStats(false);
-      }
-    }
-
-    void updateGearStats();
-  }, [gearPlanner.equippedGear]);
-
-  useEffect(() => {
-    async function updateFinalCharacterStats() {
-      try {
-        setIsCalculatingFinalStats(true);
-        setFinalStatsError(null);
-
-        const result = await calculateFinalCharacterStats(
-          selectedRace,
-          gearPlanner.equippedGear,
-          includeHolyShield,
-          talentPlanner.selectedTalentBuild
-        );
-
-        setFinalCharacterStats(result);
-      } catch {
-        setFinalStatsError("Unable to calculate final character stats.");
-      } finally {
-        setIsCalculatingFinalStats(false);
-      }
-    }
-
-    void updateFinalCharacterStats();
-  }, [
-    selectedRace,
-    gearPlanner.equippedGear,
-    includeHolyShield,
-    talentPlanner.selectedTalentBuild,
-  ]);
 
   return (
     <div className="app-shell">
@@ -157,20 +81,20 @@ function App() {
         </section>
 
         <GearStatsPanel
-          gearStats={gearStatTotals}
-          activeSetBonuses={activeGearSetBonuses}
-          warnings={calculationWarnings}
-          isCalculating={isCalculatingStats}
-          includeHolyShield={includeHolyShield}
-          onIncludeHolyShieldChange={setIncludeHolyShield}
+          gearStats={tankCalculations.gearStatTotals}
+          activeSetBonuses={tankCalculations.activeGearSetBonuses}
+          warnings={tankCalculations.calculationWarnings}
+          isCalculating={tankCalculations.isCalculatingStats}
+          includeHolyShield={tankCalculations.includeHolyShield}
+          onIncludeHolyShieldChange={tankCalculations.setIncludeHolyShield}
         />
 
         <FinalStatsPanel
-          selectedRace={selectedRace}
-          finalCharacterStats={finalCharacterStats}
-          isCalculating={isCalculatingFinalStats}
-          error={finalStatsError}
-          onRaceChange={setSelectedRace}
+          selectedRace={tankCalculations.selectedRace}
+          finalCharacterStats={tankCalculations.finalCharacterStats}
+          isCalculating={tankCalculations.isCalculatingFinalStats}
+          error={tankCalculations.finalStatsError}
+          onRaceChange={tankCalculations.setSelectedRace}
         />
       </main>
 
