@@ -16,6 +16,7 @@ interface GearTabProps {
   phaseOptions: PhaseFilterOption[];
   onPhaseChange: (value: string) => void;
   onOpenItemPicker: (slotIndex: number) => void;
+  onUnequipItem: (slotIndex: number) => void;
   onOpenEnchantPicker: (slotIndex: number) => void;
   onRemoveEnchant: (slotIndex: number) => void;
   onOpenGemPicker: (slotIndex: number, socketIndex: number) => void;
@@ -28,6 +29,7 @@ export function GearTab({
   phaseOptions,
   onPhaseChange,
   onOpenItemPicker,
+  onUnequipItem,
   onOpenEnchantPicker,
   onRemoveEnchant,
   onOpenGemPicker,
@@ -82,6 +84,15 @@ export function GearTab({
 
         {gearSlot.item && (
           <div className="gear-card-details">
+            <div className="gear-slot-actions">
+              <button
+                className="secondary-button"
+                onClick={() => onUnequipItem(index)}
+              >
+                Unequip Item
+              </button>
+            </div>
+
             <div className="gear-detail-row">
               <button
                 className={`gear-detail-chip ${

@@ -2,9 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   calculateFinalCharacterStats,
   calculateGearStats,
-  getEnchants,
-  getGems,
-  getItems,
   getTalents,
 } from "./api";
 import { BuildTabs } from "./components/BuildTabs";
@@ -15,41 +12,30 @@ import { GearStatsPanel } from "./components/GearStatsPanel";
 import { FinalStatsPanel } from "./components/FinalStatsPanel";
 import { GearTab } from "./components/GearTab";
 import { TalentsTab } from "./components/TalentsTab";
-import {
-  getBuildTabLabel,
-  initialGear,
-  phaseOptions,
-} from "./config/plannerOptions";
-import type { BuildTab, EquippedSlot } from "./models/plannerModels";
+import { getBuildTabLabel, phaseOptions } from "./config/plannerOptions";
+import { useGearPlannerState } from "./hooks/useGearPlannerState";
+import type { BuildTab } from "./models/plannerModels";
 import type {
   CharacterRace,
   CharacterTalentBuild,
-  EquippedGearItem,
   ActiveItemSetBonus,
   FinalCharacterStatsResponse,
-  SocketColor,
   StatBlock,
   TalentTreeDefinition,
-  TbcEnchant,
-  TbcGem,
-  TbcItem,
 } from "./types";
 import { createEmptyStats } from "./utils/statFormatting";
 import "./App.css";
 
 function App() {
-  const [gear, setGear] = useState<EquippedSlot[]>(initialGear);
-  const [selectedPhase, setSelectedPhase] = useState<number | undefined>(undefined);
-  const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
-  const [availableItems, setAvailableItems] = useState<TbcItem[]>([]);
-  const [isLoadingItems, setIsLoadingItems] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [itemSearchTerm, setItemSearchTerm] = useState("");
+  const gearPlanner = useGearPlannerState();
+
   const [gearStatTotals, setGearStatTotals] = useState<StatBlock>(
     createEmptyStats()
   );
   const [calculationWarnings, setCalculationWarnings] = useState<string[]>([]);
-  const [activeGearSetBonuses, setActiveGearSetBonuses] = useState<ActiveItemSetBonus[]>([]);
+  const [activeGearSetBonuses, setActiveGearSetBonuses] = useState<
+    ActiveItemSetBonus[]
+  >([]);
   const [isCalculatingStats, setIsCalculatingStats] = useState(false);
   const [selectedRace, setSelectedRace] = useState<CharacterRace>("BloodElf");
   const [includeHolyShield, setIncludeHolyShield] = useState(true);
@@ -65,23 +51,6 @@ function App() {
   const [isLoadingTalents, setIsLoadingTalents] = useState(false);
   const [talentError, setTalentError] = useState<string | null>(null);
 
-  const [selectedEnchantSlotIndex, setSelectedEnchantSlotIndex] = useState<number | null>(null);
-  const [availableEnchants, setAvailableEnchants] = useState<TbcEnchant[]>([]);
-  const [isLoadingEnchants, setIsLoadingEnchants] = useState(false);
-  const [enchantError, setEnchantError] = useState<string | null>(null);
-  const [enchantSearchTerm, setEnchantSearchTerm] = useState("");
-
-  const [selectedGemSlotIndex, setSelectedGemSlotIndex] = useState<number | null>(
-    null
-  );
-  const [selectedGemSocketIndex, setSelectedGemSocketIndex] = useState<
-    number | null
-  >(null);
-  const [availableGems, setAvailableGems] = useState<TbcGem[]>([]);
-  const [isLoadingGems, setIsLoadingGems] = useState(false);
-  const [gemError, setGemError] = useState<string | null>(null);
-  const [gemSearchTerm, setGemSearchTerm] = useState("");
-  const [includeEpicGems, setIncludeEpicGems] = useState(true);
   const [activeBuildTab, setActiveBuildTab] = useState<BuildTab>("gear");
 
   const selectedTalentBuild = useMemo<CharacterTalentBuild>(
@@ -92,41 +61,9 @@ function App() {
     [talentRanks]
   );
 
-
-  const selectedSlot =
-    selectedSlotIndex !== null ? gear[selectedSlotIndex] : undefined;
-
-
-  const selectedEnchantSlot =
-    selectedEnchantSlotIndex !== null ? gear[selectedEnchantSlotIndex] : undefined;
-
-  const selectedGemSlot =
-    selectedGemSlotIndex !== null ? gear[selectedGemSlotIndex] : undefined;
-
-  const selectedGemSocketColor: SocketColor | undefined =
-    selectedGemSlot &&
-    selectedGemSocketIndex !== null &&
-    selectedGemSlot.item?.sockets[selectedGemSocketIndex]
-      ? selectedGemSlot.item.sockets[selectedGemSocketIndex]
-      : undefined;
-
-  const equippedGear = useMemo<EquippedGearItem[]>(
-    () =>
-      gear
-        .filter((gearSlot) => gearSlot.item)
-        .map((gearSlot) => ({
-          slotKey: gearSlot.slotKey,
-          slot: gearSlot.slot,
-          itemId: gearSlot.item?.id ?? null,
-          enchantId: gearSlot.enchant?.id ?? null,
-          gemIds: gearSlot.gems?.map((gem) => gem?.id ?? null) ?? [],
-        })),
-    [gear]
-  );
-
   useEffect(() => {
     async function updateGearStats() {
-      if (equippedGear.length === 0) {
+      if (gearPlanner.equippedGear.length === 0) {
         setGearStatTotals(createEmptyStats());
         setCalculationWarnings([]);
         setActiveGearSetBonuses([]);
@@ -136,7 +73,7 @@ function App() {
       try {
         setIsCalculatingStats(true);
 
-        const result = await calculateGearStats(equippedGear);
+        const result = await calculateGearStats(gearPlanner.equippedGear);
 
         setGearStatTotals(result.gearStats);
         setCalculationWarnings(result.warnings);
@@ -149,7 +86,7 @@ function App() {
     }
 
     void updateGearStats();
-  }, [equippedGear]);
+  }, [gearPlanner.equippedGear]);
 
   useEffect(() => {
     async function loadTalents() {
@@ -178,9 +115,9 @@ function App() {
 
         const result = await calculateFinalCharacterStats(
           selectedRace,
-          equippedGear,
+          gearPlanner.equippedGear,
           includeHolyShield,
-          selectedTalentBuild,
+          selectedTalentBuild
         );
 
         setFinalCharacterStats(result);
@@ -192,251 +129,7 @@ function App() {
     }
 
     void updateFinalCharacterStats();
-  }, [selectedRace, equippedGear, includeHolyShield, selectedTalentBuild]);
-
-  
-  const selectedPhaseLabel =
-    phaseOptions.find((option) => option.value === selectedPhase)?.label ??
-    "All TBC";
-
-  async function loadItemsForSlot(slotIndex: number, phase?: number) {
-    const gearSlot = gear[slotIndex];
-
-    setAvailableItems([]);
-    setError(null);
-    setIsLoadingItems(true);
-
-    try {
-      const items = await getItems("ProtectionPaladin", gearSlot.slot, phase);
-      setAvailableItems(items);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load items.");
-    } finally {
-      setIsLoadingItems(false);
-    }
-  }
-
-  async function openItemPicker(slotIndex: number) {
-    setSelectedSlotIndex(slotIndex);
-    setItemSearchTerm("");
-
-    await loadItemsForSlot(slotIndex, selectedPhase);
-  }
-
-  function handlePhaseChange(value: string) {
-    const nextPhase = value === "all" ? undefined : Number(value);
-
-    setSelectedPhase(nextPhase);
-
-    if (selectedSlotIndex !== null) {
-      void loadItemsForSlot(selectedSlotIndex, nextPhase);
-    }
-    if (selectedEnchantSlotIndex !== null) {
-      void loadEnchantsForSlot(selectedEnchantSlotIndex, nextPhase);
-    }
-    if (selectedGemSlotIndex !== null && selectedGemSocketIndex !== null) {
-      void loadGemsForSocket(selectedGemSlotIndex, selectedGemSocketIndex, nextPhase);
-    }
-  }
-
-  function equipItem(item: TbcItem) {
-    if (selectedSlotIndex === null) {
-      return;
-    }
-
-    setGear((currentGear) =>
-      currentGear.map((gearSlot, index) =>
-        index === selectedSlotIndex
-          ? {
-            ...gearSlot,
-            item,
-            gems: item.sockets.map(() => null),
-          }
-          : gearSlot
-      )
-    );
-
-    setSelectedSlotIndex(null);
-    setAvailableItems([]);
-  }
-
-  function closeModal() {
-    setSelectedSlotIndex(null);
-    setAvailableItems([]);
-    setError(null);
-    setItemSearchTerm("");
-  }
-
-  async function loadEnchantsForSlot(slotIndex: number, phase?: number) {
-    const gearSlot = gear[slotIndex];
-
-    setAvailableEnchants([]);
-    setEnchantError(null);
-    setIsLoadingEnchants(true);
-
-    try {
-      const enchants = await getEnchants(gearSlot.slot, phase);
-      setAvailableEnchants(enchants);
-    } catch (err) {
-      setEnchantError(
-        err instanceof Error ? err.message : "Failed to load enchants."
-      );
-    } finally {
-      setIsLoadingEnchants(false);
-    }
-  }
-
-  async function openEnchantPicker(slotIndex: number) {
-    setSelectedEnchantSlotIndex(slotIndex);
-    setEnchantSearchTerm("");
-
-    await loadEnchantsForSlot(slotIndex, selectedPhase);
-  }
-
-  function equipEnchant(enchant: TbcEnchant) {
-    if (selectedEnchantSlotIndex === null) {
-      return;
-    }
-
-    setGear((currentGear) =>
-      currentGear.map((gearSlot, index) =>
-        index === selectedEnchantSlotIndex
-          ? {
-              ...gearSlot,
-              enchant,
-            }
-          : gearSlot
-      )
-    );
-
-    closeEnchantModal();
-  }
-
-  function removeEnchant(slotIndex: number) {
-    setGear((currentGear) =>
-      currentGear.map((gearSlot, index) =>
-        index === slotIndex
-          ? {
-              ...gearSlot,
-              enchant: undefined,
-            }
-          : gearSlot
-      )
-    );
-  }
-
-  function closeEnchantModal() {
-    setSelectedEnchantSlotIndex(null);
-    setAvailableEnchants([]);
-    setEnchantError(null);
-    setEnchantSearchTerm("");
-  }
-
-  async function loadGemsForSocket(
-    slotIndex: number,
-    socketIndex: number,
-    phase?: number,
-    includeEpics = includeEpicGems
-  ) {
-    const gearSlot = gear[slotIndex];
-    const socketColor = gearSlot.item?.sockets[socketIndex];
-
-    if (!socketColor) {
-      return;
-    }
-
-    setAvailableGems([]);
-    setGemError(null);
-    setIsLoadingGems(true);
-
-    try {
-      const gems = await getGems(socketColor, phase, false, includeEpics);
-      setAvailableGems(gems);
-    } catch (err) {
-      setGemError(err instanceof Error ? err.message : "Failed to load gems.");
-    } finally {
-      setIsLoadingGems(false);
-    }
-  }
-
-  async function openGemPicker(slotIndex: number, socketIndex: number) {
-    setSelectedGemSlotIndex(slotIndex);
-    setSelectedGemSocketIndex(socketIndex);
-    setGemSearchTerm("");
-
-    await loadGemsForSocket(slotIndex, socketIndex, selectedPhase);
-  }
-
-  function equipGem(gem: TbcGem) {
-    if (selectedGemSlotIndex === null || selectedGemSocketIndex === null) {
-      return;
-    }
-
-    setGear((currentGear) =>
-      currentGear.map((gearSlot, index) => {
-        if (index !== selectedGemSlotIndex || !gearSlot.item) {
-          return gearSlot;
-        }
-
-        const nextGems =
-          gearSlot.gems && gearSlot.gems.length === gearSlot.item.sockets.length
-            ? [...gearSlot.gems]
-            : gearSlot.item.sockets.map(() => null);
-
-        nextGems[selectedGemSocketIndex] = gem;
-
-        return {
-          ...gearSlot,
-          gems: nextGems,
-        };
-      })
-    );
-
-    closeGemModal();
-  }
-
-  function removeGem(slotIndex: number, socketIndex: number) {
-    setGear((currentGear) =>
-      currentGear.map((gearSlot, index) => {
-        if (index !== slotIndex || !gearSlot.item) {
-          return gearSlot;
-        }
-
-        const nextGems =
-          gearSlot.gems && gearSlot.gems.length === gearSlot.item.sockets.length
-            ? [...gearSlot.gems]
-            : gearSlot.item.sockets.map(() => null);
-
-        nextGems[socketIndex] = null;
-
-        return {
-          ...gearSlot,
-          gems: nextGems,
-        };
-      })
-    );
-  }
-
-  function closeGemModal() {
-    setSelectedGemSlotIndex(null);
-    setSelectedGemSocketIndex(null);
-    setAvailableGems([]);
-    setGemError(null);
-    setGemSearchTerm("");
-  }
-
-  function handleIncludeEpicGemsChange(checked: boolean) {
-    setIncludeEpicGems(checked);
-
-    if (selectedGemSlotIndex !== null && selectedGemSocketIndex !== null) {
-      void loadGemsForSocket(
-        selectedGemSlotIndex,
-        selectedGemSocketIndex,
-        selectedPhase,
-        checked
-      );
-    }
-  }
+  }, [selectedRace, gearPlanner.equippedGear, includeHolyShield, selectedTalentBuild]);
 
   function updateTalentRank(talentKey: string, nextRank: number) {
     setTalentRanks((currentRanks) => {
@@ -480,15 +173,16 @@ function App() {
 
           {activeBuildTab === "gear" && (
             <GearTab
-              gear={gear}
-              selectedPhase={selectedPhase}
+              gear={gearPlanner.gear}
+              selectedPhase={gearPlanner.selectedPhase}
               phaseOptions={phaseOptions}
-              onPhaseChange={handlePhaseChange}
-              onOpenItemPicker={openItemPicker}
-              onOpenEnchantPicker={openEnchantPicker}
-              onRemoveEnchant={removeEnchant}
-              onOpenGemPicker={openGemPicker}
-              onRemoveGem={removeGem}
+              onPhaseChange={gearPlanner.handlePhaseChange}
+              onOpenItemPicker={gearPlanner.openItemPicker}
+              onUnequipItem={gearPlanner.unequipItem}
+              onOpenEnchantPicker={gearPlanner.openEnchantPicker}
+              onRemoveEnchant={gearPlanner.removeEnchant}
+              onOpenGemPicker={gearPlanner.openGemPicker}
+              onRemoveGem={gearPlanner.removeGem}
             />
           )}
 
@@ -505,9 +199,7 @@ function App() {
 
           {activeBuildTab !== "gear" && activeBuildTab !== "talents" && (
             <div className="placeholder-panel">
-              <h2>
-                {getBuildTabLabel(activeBuildTab)}
-              </h2>
+              <h2>{getBuildTabLabel(activeBuildTab)}</h2>
               <p className="muted">This section will be added later.</p>
             </div>
           )}
@@ -531,60 +223,59 @@ function App() {
         />
       </main>
 
-      {selectedSlot && (
+      {gearPlanner.selectedSlot && (
         <ItemPickerModal
-          selectedSlot={selectedSlot}
-          selectedPhase={selectedPhase}
-          selectedPhaseLabel={selectedPhaseLabel}
+          selectedSlot={gearPlanner.selectedSlot}
+          selectedPhase={gearPlanner.selectedPhase}
+          selectedPhaseLabel={gearPlanner.selectedPhaseLabel}
           phaseOptions={phaseOptions}
-          availableItems={availableItems}
-          isLoadingItems={isLoadingItems}
-          error={error}
-          searchTerm={itemSearchTerm}
-          onSearchTermChange={setItemSearchTerm}
-          onPhaseChange={handlePhaseChange}
-          onSelectItem={equipItem}
-          onClose={closeModal}
+          availableItems={gearPlanner.availableItems}
+          isLoadingItems={gearPlanner.isLoadingItems}
+          error={gearPlanner.itemError}
+          searchTerm={gearPlanner.itemSearchTerm}
+          onSearchTermChange={gearPlanner.setItemSearchTerm}
+          onPhaseChange={gearPlanner.handlePhaseChange}
+          onSelectItem={gearPlanner.equipItem}
+          onClose={gearPlanner.closeItemModal}
         />
       )}
 
-      {selectedEnchantSlot && (
+      {gearPlanner.selectedEnchantSlot && (
         <EnchantPickerModal
-          selectedSlot={selectedEnchantSlot}
-          selectedPhase={selectedPhase}
-          selectedPhaseLabel={selectedPhaseLabel}
+          selectedSlot={gearPlanner.selectedEnchantSlot}
+          selectedPhase={gearPlanner.selectedPhase}
+          selectedPhaseLabel={gearPlanner.selectedPhaseLabel}
           phaseOptions={phaseOptions}
-          availableEnchants={availableEnchants}
-          isLoadingEnchants={isLoadingEnchants}
-          error={enchantError}
-          searchTerm={enchantSearchTerm}
-          onSearchTermChange={setEnchantSearchTerm}
-          onPhaseChange={handlePhaseChange}
-          onSelectEnchant={equipEnchant}
-          onClose={closeEnchantModal}
+          availableEnchants={gearPlanner.availableEnchants}
+          isLoadingEnchants={gearPlanner.isLoadingEnchants}
+          error={gearPlanner.enchantError}
+          searchTerm={gearPlanner.enchantSearchTerm}
+          onSearchTermChange={gearPlanner.setEnchantSearchTerm}
+          onPhaseChange={gearPlanner.handlePhaseChange}
+          onSelectEnchant={gearPlanner.equipEnchant}
+          onClose={gearPlanner.closeEnchantModal}
         />
       )}
 
-      {selectedGemSlot && selectedGemSocketColor && (
+      {gearPlanner.selectedGemSlot && gearPlanner.selectedGemSocketColor && (
         <GemPickerModal
-          selectedSlot={selectedGemSlot}
-          selectedSocketColor={selectedGemSocketColor}
-          selectedPhase={selectedPhase}
-          selectedPhaseLabel={selectedPhaseLabel}
+          selectedSlot={gearPlanner.selectedGemSlot}
+          selectedSocketColor={gearPlanner.selectedGemSocketColor}
+          selectedPhase={gearPlanner.selectedPhase}
+          selectedPhaseLabel={gearPlanner.selectedPhaseLabel}
           phaseOptions={phaseOptions}
-          availableGems={availableGems}
-          isLoadingGems={isLoadingGems}
-          error={gemError}
-          searchTerm={gemSearchTerm}
-          includeEpicGems={includeEpicGems}
-          onSearchTermChange={setGemSearchTerm}
-          onPhaseChange={handlePhaseChange}
-          onIncludeEpicGemsChange={handleIncludeEpicGemsChange}
-          onSelectGem={equipGem}
-          onClose={closeGemModal}
+          availableGems={gearPlanner.availableGems}
+          isLoadingGems={gearPlanner.isLoadingGems}
+          error={gearPlanner.gemError}
+          searchTerm={gearPlanner.gemSearchTerm}
+          includeEpicGems={gearPlanner.includeEpicGems}
+          onSearchTermChange={gearPlanner.setGemSearchTerm}
+          onPhaseChange={gearPlanner.handlePhaseChange}
+          onIncludeEpicGemsChange={gearPlanner.handleIncludeEpicGemsChange}
+          onSelectGem={gearPlanner.equipGem}
+          onClose={gearPlanner.closeGemModal}
         />
       )}
-
     </div>
   );
 }
