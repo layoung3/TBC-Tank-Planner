@@ -8,17 +8,17 @@ import {
   getTalents,
 } from "./api";
 import { BuildTabs } from "./components/BuildTabs";
-import { EffectSummaryList } from "./components/EffectSummaryList";
 import { ItemPickerModal } from "./components/ItemPickerModal";
 import { EnchantPickerModal } from "./components/EnchantPickerModal";
 import { GemPickerModal } from "./components/GemPickerModal";
+import { GearStatsPanel } from "./components/GearStatsPanel";
+import { FinalStatsPanel } from "./components/FinalStatsPanel";
 import { GearTab } from "./components/GearTab";
 import { TalentsTab } from "./components/TalentsTab";
 import {
   getBuildTabLabel,
   initialGear,
   phaseOptions,
-  raceOptions,
 } from "./config/plannerOptions";
 import type { BuildTab, EquippedSlot } from "./models/plannerModels";
 import type {
@@ -96,10 +96,6 @@ function App() {
   const selectedSlot =
     selectedSlotIndex !== null ? gear[selectedSlotIndex] : undefined;
 
-  const activeFinalSetBonuses = finalCharacterStats?.activeSetBonuses ?? [];
-
-  const activeTalentEffects = finalCharacterStats?.activeTalentEffects ?? [];
-  const talentWarnings = finalCharacterStats?.talentWarnings ?? [];
 
   const selectedEnchantSlot =
     selectedEnchantSlotIndex !== null ? gear[selectedEnchantSlotIndex] : undefined;
@@ -199,104 +195,6 @@ function App() {
   }, [selectedRace, equippedGear, includeHolyShield, selectedTalentBuild]);
 
   
-  const visibleStatRows = [
-    { label: "Stamina", value: gearStatTotals.stamina },
-    { label: "Strength", value: gearStatTotals.strength },
-    { label: "Agility", value: gearStatTotals.agility },
-    { label: "Intellect", value: gearStatTotals.intellect },
-    { label: "Armor", value: gearStatTotals.armor },
-    { label: "Arcane Resistance", value: gearStatTotals.arcaneResistance },
-    { label: "Fire Resistance", value: gearStatTotals.fireResistance },
-    { label: "Frost Resistance", value: gearStatTotals.frostResistance },
-    { label: "Nature Resistance", value: gearStatTotals.natureResistance },
-    { label: "Shadow Resistance", value: gearStatTotals.shadowResistance },
-    { label: "Defense Rating", value: gearStatTotals.defenseRating },
-    { label: "Dodge Rating", value: gearStatTotals.dodgeRating },
-    { label: "Parry Rating", value: gearStatTotals.parryRating },
-    { label: "Block Rating", value: gearStatTotals.blockRating },
-    { label: "Block Value", value: gearStatTotals.blockValue },
-    { label: "Resilience Rating", value: gearStatTotals.resilienceRating },
-    { label: "Hit Rating", value: gearStatTotals.hitRating },
-    { label: "Spell Hit Rating", value: gearStatTotals.spellHitRating },
-    { label: "Expertise Rating", value: gearStatTotals.expertiseRating },
-    { label: "Attack Power", value: gearStatTotals.attackPower },
-    { label: "Spell Power", value: gearStatTotals.spellPower },
-    { label: "MP5", value: gearStatTotals.mp5 },
-  ].filter((stat) => stat.value !== 0);
-
-  const visibleFinalStatRows = finalCharacterStats
-  ? [
-      { label: "Stamina", value: finalCharacterStats.finalStats.stamina },
-      { label: "Strength", value: finalCharacterStats.finalStats.strength },
-      { label: "Agility", value: finalCharacterStats.finalStats.agility },
-      { label: "Intellect", value: finalCharacterStats.finalStats.intellect },
-      { label: "Armor", value: finalCharacterStats.finalStats.armor },
-      {
-        label: "Arcane Resistance",
-        value: finalCharacterStats.finalStats.arcaneResistance,
-      },
-      {
-        label: "Fire Resistance",
-        value: finalCharacterStats.finalStats.fireResistance,
-      },
-      {
-        label: "Frost Resistance",
-        value: finalCharacterStats.finalStats.frostResistance,
-      },
-      {
-        label: "Nature Resistance",
-        value: finalCharacterStats.finalStats.natureResistance,
-      },
-      {
-        label: "Shadow Resistance",
-        value: finalCharacterStats.finalStats.shadowResistance,
-      },
-      {
-        label: "Defense Rating",
-        value: finalCharacterStats.finalStats.defenseRating,
-      },
-      {
-        label: "Dodge Rating",
-        value: finalCharacterStats.finalStats.dodgeRating,
-      },
-      {
-        label: "Parry Rating",
-        value: finalCharacterStats.finalStats.parryRating,
-      },
-      {
-        label: "Block Rating",
-        value: finalCharacterStats.finalStats.blockRating,
-      },
-      {
-        label: "Block Value",
-        value: finalCharacterStats.finalStats.blockValue,
-      },
-      {
-        label: "Resilience Rating",
-        value: finalCharacterStats.finalStats.resilienceRating,
-      },
-      { label: "Hit Rating", value: finalCharacterStats.finalStats.hitRating },
-      {
-        label: "Spell Hit Rating",
-        value: finalCharacterStats.finalStats.spellHitRating,
-      },
-      {
-        label: "Expertise Rating",
-        value: finalCharacterStats.finalStats.expertiseRating,
-      },
-      {
-        label: "Attack Power",
-        value: finalCharacterStats.finalStats.attackPower,
-      },
-      { label: "Spell Power", value: finalCharacterStats.finalStats.spellPower },
-      { label: "MP5", value: finalCharacterStats.finalStats.mp5 },
-    ].filter((stat) => stat.value !== 0)
-  : [];
-
-  const derivedTankStats = finalCharacterStats?.derivedTankStats;
-  const physicalMitigationStats = finalCharacterStats?.physicalMitigationStats;
-  const magicMitigationStats = finalCharacterStats?.magicMitigationStats;
-
   const selectedPhaseLabel =
     phaseOptions.find((option) => option.value === selectedPhase)?.label ??
     "All TBC";
@@ -615,342 +513,22 @@ function App() {
           )}
         </section>
 
-        <section className="panel stats-panel">
-          <div className="panel-title-row compact-panel-title">
-            <h2>Gear Stat Totals</h2>
+        <GearStatsPanel
+          gearStats={gearStatTotals}
+          activeSetBonuses={activeGearSetBonuses}
+          warnings={calculationWarnings}
+          isCalculating={isCalculatingStats}
+          includeHolyShield={includeHolyShield}
+          onIncludeHolyShieldChange={setIncludeHolyShield}
+        />
 
-            <label className="mini-toggle">
-              <input
-                type="checkbox"
-                checked={includeHolyShield}
-                onChange={(event) => setIncludeHolyShield(event.target.checked)}
-              />
-              <span>Holy Shield</span>
-            </label>
-          </div>
-
-          <p className="panel-caption">
-            Gear totals include equipped items, enchants, active gems, and active socket
-            bonuses.
-          </p>
-
-          {isCalculatingStats && <p className="muted">Calculating...</p>}
-
-          {visibleStatRows.length === 0 ? (
-            <p className="muted">Equip gear to see stat totals.</p>
-          ) : (
-            <div className="compact-stat-grid">
-              {visibleStatRows.map((stat) => (
-                <div className="compact-stat" key={stat.label}>
-                  <span>{stat.label}</span>
-                  <strong>{stat.value}</strong>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {activeGearSetBonuses.length > 0 && (
-            <div className="set-bonus-list">
-              <h3 className="set-bonus-title">Active Set Bonuses</h3>
-
-              {activeGearSetBonuses.map((bonus) => (
-                <div
-                  className="set-bonus-card"
-                  key={`${bonus.setId}-${bonus.piecesRequired}`}
-                >
-                  <div className="set-bonus-heading">
-                    <strong>{bonus.setName}</strong>
-                    <span>
-                      {bonus.piecesRequired}pc active ({bonus.piecesEquipped} equipped)
-                    </span>
-                  </div>
-
-                  <p>{bonus.description}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {calculationWarnings.length > 0 && (
-            <div className="warning-list">
-              {calculationWarnings.map((warning) => (
-                <p key={warning} className="warning-message">
-                  {warning}
-                </p>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="panel results-panel">
-          <div className="panel-title-row">
-            <h2>Final Character Stats</h2>
-
-            <label className="race-filter">
-              <span>Race</span>
-              <select
-                value={selectedRace}
-                onChange={(event) =>
-                  setSelectedRace(event.target.value as CharacterRace)
-                }
-              >
-                {raceOptions.map((raceOption) => (
-                  <option key={raceOption.value} value={raceOption.value}>
-                    {raceOption.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          {isCalculatingFinalStats && <p className="muted">Calculating...</p>}
-
-          {finalStatsError && <p className="error">{finalStatsError}</p>}
-
-          {finalCharacterStats && (
-            <>
-              <div className="summary-grid">
-                <div className="summary-card">
-                  <span>Health</span>
-                  <strong>{finalCharacterStats.health}</strong>
-                </div>
-
-                <div className="summary-card">
-                  <span>Mana</span>
-                  <strong>{finalCharacterStats.mana}</strong>
-                </div>
-
-                {physicalMitigationStats && (
-                  <>
-                    <div className="summary-card">
-                      <span>Physical EHP</span>
-                      <strong>
-                        {physicalMitigationStats.physicalEffectiveHealth.toLocaleString()}
-                      </strong>
-                      <small>vs level {physicalMitigationStats.attackerLevel}</small>
-                    </div>
-
-                    <div className="summary-card">
-                      <span>Armor DR</span>
-                      <strong>{physicalMitigationStats.armorDamageReductionPercent}%</strong>
-                      <small>
-                        {physicalMitigationStats.armorNeededForCap.toLocaleString()} armor to cap
-                      </small>
-                    </div>
-                  </>
-                )}
-
-                {magicMitigationStats && (
-                  <div className="summary-card">
-                    <span>Best Magic EHP</span>
-                    <strong>
-                      {Math.max(
-                        ...magicMitigationStats.schools.map(
-                          (school) => school.magicEffectiveHealth
-                        )
-                      ).toLocaleString()}
-                    </strong>
-                    <small>Highest current resistance school</small>
-                  </div>
-                )}
-
-                {derivedTankStats && (
-                  <>
-                    <div
-                      className={`summary-card status-card ${
-                        derivedTankStats.isCritImmune ? "status-good" : "status-bad"
-                      }`}
-                    >
-                      <span>Crit Immune</span>
-                      <strong>{derivedTankStats.isCritImmune ? "Yes" : "No"}</strong>
-                      <small>
-                        {derivedTankStats.isCritImmune
-                          ? `${derivedTankStats.totalCritReductionPercent}% reduction`
-                          : `${derivedTankStats.critReductionNeededPercent}% short`}
-                      </small>
-                    </div>
-
-                    <div
-                      className={`summary-card status-card ${
-                        derivedTankStats.isUncrushable ? "status-good" : "status-bad"
-                      }`}
-                    >
-                      <span>Uncrushable</span>
-                      <strong>{derivedTankStats.isUncrushable ? "Yes" : "No"}</strong>
-                      <small>
-                        {derivedTankStats.isUncrushable
-                          ? `${derivedTankStats.avoidanceWithBlockPercent}% table coverage`
-                          : `${derivedTankStats.crushAvoidanceNeededPercent}% short`}
-                      </small>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <h3 className="subsection-title">Core Stats</h3>
-
-              <div className="compact-stat-grid">
-                {visibleFinalStatRows.map((stat) => (
-                  <div className="compact-stat" key={stat.label}>
-                    <span>{stat.label}</span>
-                    <strong>{stat.value}</strong>
-                  </div>
-                ))}
-              </div>
-
-              {activeFinalSetBonuses.length > 0 && (
-                <>
-                  <h3 className="subsection-title">Set Bonuses</h3>
-
-                  <div className="set-bonus-list compact-set-bonus-list">
-                    {activeFinalSetBonuses.map((bonus) => (
-                      <div
-                        className="set-bonus-card"
-                        key={`${bonus.setId}-${bonus.piecesRequired}`}
-                      >
-                        <div className="set-bonus-heading">
-                          <strong>{bonus.setName}</strong>
-                          <span>
-                            {bonus.piecesRequired}pc active ({bonus.piecesEquipped} equipped)
-                          </span>
-                        </div>
-
-                        <p>{bonus.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              <EffectSummaryList
-                title="Active Talent Effects"
-                effects={activeTalentEffects}
-                emptyMessage="No active talent effects."
-              />
-
-              {talentWarnings.length > 0 && (
-                <div className="warning-list">
-                  {talentWarnings.map((warning) => (
-                    <p key={warning} className="warning-message">
-                      {warning}
-                    </p>
-                  ))}
-                </div>
-              )}
-
-              {physicalMitigationStats && (
-                <>
-                  <h3 className="subsection-title">Mitigation</h3>
-
-                  <div className="compact-stat-grid">
-                    <div className="compact-stat">
-                      <span>Physical EHP</span>
-                      <strong>
-                        {physicalMitigationStats.physicalEffectiveHealth.toLocaleString()}
-                      </strong>
-                    </div>
-
-                    <div className="compact-stat">
-                      <span>Armor DR</span>
-                      <strong>{physicalMitigationStats.armorDamageReductionPercent}%</strong>
-                    </div>
-
-                    <div className="compact-stat">
-                      <span>Armor Cap</span>
-                      <strong>{physicalMitigationStats.armorCap.toLocaleString()}</strong>
-                    </div>
-
-                    <div className="compact-stat">
-                      <span>Armor to Cap</span>
-                      <strong>
-                        {physicalMitigationStats.armorNeededForCap.toLocaleString()}
-                      </strong>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {magicMitigationStats && (
-                <>
-                  <h3 className="subsection-title">Resistance EHP</h3>
-
-                  <div className="compact-stat-grid">
-                    {magicMitigationStats.schools.map((school) => (
-                      <div className="compact-stat" key={school.school}>
-                        <span>
-                          {school.school} — {school.resistance}/{school.resistanceCap}
-                        </span>
-                        <strong>{school.magicEffectiveHealth.toLocaleString()}</strong>
-                        <small>
-                          {school.averageDamageReductionPercent}% avg reduction •{" "}
-                          {school.resistanceNeededForCap} to cap
-                        </small>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              {derivedTankStats && (
-                <>
-                  <h3 className="subsection-title">Tank Table</h3>
-
-                  <div className="compact-stat-grid tank-table-grid">
-                    <div className="stat-row">
-                      <span>Defense Skill</span>
-                      <strong>{derivedTankStats.defenseSkill}</strong>
-                    </div>
-
-                    <div className="stat-row">
-                      <span>Crit Reduction</span>
-                      <strong>{derivedTankStats.totalCritReductionPercent}%</strong>
-                    </div>
-
-                    <div className="stat-row">
-                      <span>Miss</span>
-                      <strong>{derivedTankStats.missPercent}%</strong>
-                    </div>
-
-                    <div className="stat-row">
-                      <span>Dodge</span>
-                      <strong>{derivedTankStats.dodgePercent}%</strong>
-                    </div>
-
-                    <div className="stat-row">
-                      <span>Parry</span>
-                      <strong>{derivedTankStats.parryPercent}%</strong>
-                    </div>
-
-                    <div className="stat-row">
-                      <span>Block</span>
-                      <strong>{derivedTankStats.blockPercent}%</strong>
-                    </div>
-
-                    <div className="stat-row">
-                      <span>Holy Shield</span>
-                      <strong>
-                        {derivedTankStats.isHolyShieldIncluded
-                          ? `+${derivedTankStats.holyShieldBlockChancePercent}% Block`
-                          : "Not Included"}
-                      </strong>
-                    </div>
-
-                    <div className="stat-row">
-                      <span>Avoidance + Block</span>
-                      <strong>{derivedTankStats.avoidanceWithBlockPercent}%</strong>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <p className="stat-note">
-                Final stats include base level 70 Protection Paladin stats plus equipped
-                gear, enchants, active gems, and active socket bonuses. Talents, buffs, EHP,
-                and encounter settings will be added later.
-              </p>
-            </>
-          )}
-        </section>
+        <FinalStatsPanel
+          selectedRace={selectedRace}
+          finalCharacterStats={finalCharacterStats}
+          isCalculating={isCalculatingFinalStats}
+          error={finalStatsError}
+          onRaceChange={setSelectedRace}
+        />
       </main>
 
       {selectedSlot && (

@@ -1,5 +1,10 @@
 import type { StatBlock } from "../types";
 
+export interface StatRow {
+  label: string;
+  value: number;
+}
+
 export function createEmptyStats(): StatBlock {
   return {
     stamina: 0,
@@ -25,6 +30,33 @@ export function createEmptyStats(): StatBlock {
     spellPower: 0,
     mp5: 0,
   };
+}
+
+export function getVisibleStatRows(stats: StatBlock): StatRow[] {
+  return [
+    { label: "Stamina", value: stats.stamina },
+    { label: "Strength", value: stats.strength },
+    { label: "Agility", value: stats.agility },
+    { label: "Intellect", value: stats.intellect },
+    { label: "Armor", value: stats.armor },
+    { label: "Arcane Resistance", value: stats.arcaneResistance },
+    { label: "Fire Resistance", value: stats.fireResistance },
+    { label: "Frost Resistance", value: stats.frostResistance },
+    { label: "Nature Resistance", value: stats.natureResistance },
+    { label: "Shadow Resistance", value: stats.shadowResistance },
+    { label: "Defense Rating", value: stats.defenseRating },
+    { label: "Dodge Rating", value: stats.dodgeRating },
+    { label: "Parry Rating", value: stats.parryRating },
+    { label: "Block Rating", value: stats.blockRating },
+    { label: "Block Value", value: stats.blockValue },
+    { label: "Resilience Rating", value: stats.resilienceRating },
+    { label: "Hit Rating", value: stats.hitRating },
+    { label: "Spell Hit Rating", value: stats.spellHitRating },
+    { label: "Expertise Rating", value: stats.expertiseRating },
+    { label: "Attack Power", value: stats.attackPower },
+    { label: "Spell Power", value: stats.spellPower },
+    { label: "MP5", value: stats.mp5 },
+  ].filter((stat) => stat.value !== 0);
 }
 
 export function formatStatSummary(stats: StatBlock): string {
