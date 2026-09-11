@@ -18,6 +18,7 @@ import type {
   StatBlock,
   TalentDefinition,
   TalentTreeDefinition,
+  ActiveTalentEffect,
   TbcEnchant,
   TbcGem,
   TbcItem,
@@ -322,6 +323,45 @@ function getSocketDisplayIndexes(sockets: SocketColor[]): number[] {
     });
 }
 
+function renderEffectList(
+  title: string,
+  effects: ActiveTalentEffect[],
+  emptyMessage?: string
+) {
+  if (effects.length === 0) {
+    return emptyMessage ? <p className="muted">{emptyMessage}</p> : null;
+  }
+
+  return (
+    <div className="effect-list">
+      <h3 className="section-title">{title}</h3>
+
+      {effects.map((effect) => (
+        <article className="effect-card" key={effect.key}>
+          <div className="effect-card-heading">
+            <div>
+              <strong>{effect.name}</strong>
+              <span>
+                {effect.treeKey} • Rank {effect.rank}/{effect.maxRank}
+              </span>
+            </div>
+
+            <div className="tag-list">
+              {effect.appliesTo.map((scope) => (
+                <span className="tag" key={`${effect.key}-${scope}`}>
+                  {scope}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <p>{effect.description}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 function App() {
   const [gear, setGear] = useState<EquippedSlot[]>(initialGear);
   const [selectedPhase, setSelectedPhase] = useState<number | undefined>(undefined);
@@ -382,6 +422,9 @@ function App() {
     selectedSlotIndex !== null ? gear[selectedSlotIndex] : undefined;
 
   const activeFinalSetBonuses = finalCharacterStats?.activeSetBonuses ?? [];
+
+  const activeTalentEffects = finalCharacterStats?.activeTalentEffects ?? [];
+  const talentWarnings = finalCharacterStats?.talentWarnings ?? [];
 
   const selectedEnchantSlot =
     selectedEnchantSlotIndex !== null ? gear[selectedEnchantSlotIndex] : undefined;
@@ -1459,6 +1502,22 @@ function App() {
                     ))}
                   </div>
                 </>
+              )}
+
+              {renderEffectList(
+                "Active Talent Effects",
+                activeTalentEffects,
+                "No active talent effects."
+              )}
+
+              {talentWarnings.length > 0 && (
+                <div className="warning-list">
+                  {talentWarnings.map((warning) => (
+                    <p key={warning} className="warning-message">
+                      {warning}
+                    </p>
+                  ))}
+                </div>
               )}
 
               {physicalMitigationStats && (

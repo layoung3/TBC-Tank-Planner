@@ -1,6 +1,7 @@
 ﻿using TbcTankPlanner.Domain.Characters;
 using TbcTankPlanner.Domain.ItemSets;
 using TbcTankPlanner.Domain.Stats;
+using TbcTankPlanner.Domain.Talents;
 
 namespace TbcTankPlanner.Domain.Calculations;
 
@@ -26,6 +27,10 @@ public class FinalCharacterStatsResponse
     public PhysicalMitigationStats PhysicalMitigationStats { get; set; } = new();
 
     public MagicMitigationStats MagicMitigationStats { get; set; } = new();
+
+    public List<ActiveTalentEffect> ActiveTalentEffects { get; set; } = [];
+
+    public List<string> TalentWarnings { get; set; } = [];
 
     public List<string> Warnings { get; set; } = [];
 }

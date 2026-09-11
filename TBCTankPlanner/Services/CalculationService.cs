@@ -13,19 +13,20 @@ public class CalculationService
     private readonly ItemDataService _itemDataService;
     private readonly EnchantDataService _enchantDataService;
     private readonly GemDataService _gemDataService;
-
     private readonly ItemSetDataService _itemSetDataService;
+    private readonly TalentDataService _talentDataService;
 
     public CalculationService(
-    ItemDataService itemDataService,
-    EnchantDataService enchantDataService,
-    GemDataService gemDataService, ItemSetDataService itemSetDataService
+    ItemDataService itemDataService, EnchantDataService enchantDataService,
+    GemDataService gemDataService, ItemSetDataService itemSetDataService,
+    TalentDataService talentDataService
     )
     {
         _itemDataService = itemDataService;
         _enchantDataService = enchantDataService;
         _gemDataService = gemDataService;
         _itemSetDataService = itemSetDataService;
+        _talentDataService = talentDataService;
     }
 
     public async Task<GearStatsResponse> CalculateGearStatsAsync(GearStatsRequest request)
@@ -177,6 +178,21 @@ public class CalculationService
             }
         );
 
+        var talentTrees = await _talentDataService.GetTalentTreesAsync(
+            request.TalentBuild.Class
+        );
+
+        var activeTalentEffects = BuildActiveTalentEffects(
+            request.TalentBuild,
+            talentTrees
+        );
+
+        var talentWarnings = BuildTalentWarnings(
+            request.TalentBuild,
+            talentTrees,
+            request.IncludeHolyShield
+        );
+
         var baseStats = GetProtectionPaladinBaseStats(request.Race);
 
         var rawFinalStats = new StatBlock();
@@ -223,6 +239,10 @@ public class CalculationService
             talentModifiers.GlobalDamageTakenMultiplier
         );
 
+        var combinedWarnings = gearStatsResponse.Warnings
+        .Concat(talentWarnings)
+        .ToList();
+
         var response = new FinalCharacterStatsResponse
         {
             Race = request.Race,
@@ -236,7 +256,9 @@ public class CalculationService
             Mana = convertedStats.Mana,
             PhysicalMitigationStats = physicalMitigationStats,
             MagicMitigationStats = magicMitigationStats,
-            Warnings = gearStatsResponse.Warnings
+            ActiveTalentEffects = activeTalentEffects,
+            TalentWarnings = talentWarnings,
+            Warnings = combinedWarnings,
         };
 
         return response;
@@ -854,6 +876,159 @@ public class CalculationService
                 $"{requirement.Count} {requirement.Color} gem(s)"
             )
         );
+    }
+
+    private static List<ActiveTalentEffect> BuildActiveTalentEffects(
+        CharacterTalentBuild talentBuild,
+        IReadOnlyList<TalentTreeDefinition> talentTrees
+    )
+    {
+        var activeTalentEffects = new List<ActiveTalentEffect>();
+
+        foreach (var tree in talentTrees)
+        {
+            foreach (var talent in tree.Talents.OrderBy(talent => talent.Row).ThenBy(talent => talent.Column))
+            {
+                var rank = GetClampedTalentRank(
+                    talentBuild,
+                    talent.Key,
+                    talent.MaxRank
+                );
+
+                if (rank <= 0)
+                {
+                    continue;
+                }
+
+                var rankDescription =
+                    talent.RankEffects.FirstOrDefault(rankEffect => rankEffect.Rank == rank)
+                        ?.Description ??
+                    talent.Description;
+
+                activeTalentEffects.Add(new ActiveTalentEffect
+                {
+                    Key = talent.Key,
+                    Name = talent.Name,
+                    TreeKey = tree.Name,
+                    Rank = rank,
+                    MaxRank = talent.MaxRank,
+                    Description = rankDescription,
+                    EffectKeys = talent.EffectKeys,
+                    AppliesTo = GetTalentEffectScopes(talent)
+                });
+            }
+        }
+
+        return activeTalentEffects;
+    }
+
+    private static List<string> BuildTalentWarnings(
+        CharacterTalentBuild talentBuild,
+        IReadOnlyList<TalentTreeDefinition> talentTrees,
+        bool includeHolyShield
+    )
+    {
+        const string holyShieldTalentKey = "paladin_protection_holy_shield";
+
+        var warnings = new List<string>();
+
+        var talentLookup = talentTrees
+            .SelectMany(tree => tree.Talents)
+            .ToDictionary(talent => talent.Key);
+
+        foreach (var talentRank in talentBuild.TalentRanks)
+        {
+            if (!talentLookup.TryGetValue(talentRank.Key, out var talent))
+            {
+                warnings.Add($"Talent key {talentRank.Key} was not found and was ignored.");
+                continue;
+            }
+
+            if (talentRank.Value < 0 || talentRank.Value > talent.MaxRank)
+            {
+                warnings.Add(
+                    $"{talent.Name} was sent with rank {talentRank.Value}, but valid ranks are 0-{talent.MaxRank}. The value was clamped."
+                );
+            }
+        }
+
+        var holyShieldRank = GetClampedTalentRank(
+            talentBuild,
+            holyShieldTalentKey,
+            1
+        );
+
+        if (includeHolyShield && holyShieldRank <= 0)
+        {
+            warnings.Add(
+                "Holy Shield is checked, but the Holy Shield talent is not selected. Holy Shield block chance is not applied."
+            );
+        }
+
+        return warnings;
+    }
+
+    private static int GetClampedTalentRank(
+        CharacterTalentBuild talentBuild,
+        string talentKey,
+        int maxRank
+    )
+    {
+        if (!talentBuild.TalentRanks.TryGetValue(talentKey, out var rank))
+        {
+            return 0;
+        }
+
+        return Math.Clamp(rank, 0, maxRank);
+    }
+
+    private static List<string> GetTalentEffectScopes(TalentDefinition talent)
+    {
+        var scopes = new HashSet<string>();
+
+        foreach (var effectKey in talent.EffectKeys)
+        {
+            var normalizedEffectKey = effectKey.ToLowerInvariant();
+
+            if (
+                normalizedEffectKey.Contains("stamina") ||
+                normalizedEffectKey.Contains("armor") ||
+                normalizedEffectKey.Contains("defense") ||
+                normalizedEffectKey.Contains("parry") ||
+                normalizedEffectKey.Contains("block") ||
+                normalizedEffectKey.Contains("damagetaken")
+            )
+            {
+                scopes.Add("Tank Check");
+            }
+
+            if (
+                normalizedEffectKey.Contains("threat") ||
+                normalizedEffectKey.Contains("righteousfury")
+            )
+            {
+                scopes.Add("Threat");
+            }
+
+            if (
+                normalizedEffectKey.Contains("damagepercent") ||
+                normalizedEffectKey.Contains("sealdamage") ||
+                normalizedEffectKey.Contains("judgement") ||
+                normalizedEffectKey.Contains("consecration") ||
+                normalizedEffectKey.Contains("avengersshield")
+            )
+            {
+                scopes.Add("DPS");
+                scopes.Add("Threat");
+            }
+        }
+
+        if (scopes.Count == 0)
+        {
+            scopes.Add("Utility");
+        }
+
+        return scopes.ToList();
     }
 
     private static int ApplyMultiplier(int value, decimal multiplier)

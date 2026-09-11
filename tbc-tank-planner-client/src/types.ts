@@ -124,6 +124,17 @@ export interface CharacterTalentBuild {
   talentRanks: Record<string, number>;
 }
 
+export interface ActiveTalentEffect {
+  key: string;
+  name: string;
+  treeKey: string;
+  rank: number;
+  maxRank: number;
+  description: string;
+  effectKeys: string[];
+  appliesTo: string[];
+}
+
 export interface TbcEnchant {
   id: number;
   name: string;
@@ -157,11 +168,10 @@ export interface GemColorRequirement {
 
 export interface GearStatsRequest {
   equippedGear: EquippedGearItem[];
-  activeSetBonuses: ActiveItemSetBonus[];
 }
 
 export interface GearStatsResponse {
-  activeSetBonuses: never[];
+  activeSetBonuses: ActiveItemSetBonus[];
   gearStats: StatBlock;
   warnings: string[];
 }
@@ -210,6 +220,8 @@ export interface FinalCharacterStatsResponse {
   health: number;
   mana: number;
   activeSetBonuses: ActiveItemSetBonus[];
+  activeTalentEffects: ActiveTalentEffect[];
+  talentWarnings: string[];
   baseStats: CharacterBaseStats;
   gearStats: StatBlock;
   finalStats: StatBlock;
