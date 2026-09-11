@@ -26,7 +26,7 @@ export const raceOptions: RaceOption[] = [
 export const buildTabOptions: BuildTabOption[] = [
   { id: "gear", label: "Gear" },
   { id: "talents", label: "Talents" },
-  { id: "buffs", label: "Buffs", isDisabled: true },
+  { id: "buffs", label: "Buffs" },
   { id: "encounter", label: "Encounter", isDisabled: true },
   { id: "sim", label: "Sim", isDisabled: true },
   { id: "optimizer", label: "Optimizer", isDisabled: true },

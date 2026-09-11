@@ -1,5 +1,6 @@
 import type {
   CharacterRace,
+  CharacterBuffSelection,
   EquippedGearItem,
   CharacterTalentBuild,
   TalentTreeDefinition,
@@ -136,7 +137,8 @@ export async function calculateFinalCharacterStats(
   race: CharacterRace,
   equippedGear: EquippedGearItem[],
   includeHolyShield: boolean,
-  talentBuild: CharacterTalentBuild
+  talentBuild: CharacterTalentBuild,
+  buffSelection: CharacterBuffSelection
 ): Promise<FinalCharacterStatsResponse> {
   const response = await fetch(
     `${API_BASE_URL}/api/calculations/final-character-stats`,
@@ -150,6 +152,7 @@ export async function calculateFinalCharacterStats(
         equippedGear,
         includeHolyShield,
         talentBuild,
+        buffSelection,
       }),
     }
   );

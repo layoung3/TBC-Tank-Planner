@@ -7,9 +7,11 @@ import { GearStatsPanel } from "./components/GearStatsPanel";
 import { FinalStatsPanel } from "./components/FinalStatsPanel";
 import { GearTab } from "./components/GearTab";
 import { TalentsTab } from "./components/TalentsTab";
+import { BuffsTab } from "./components/BuffsTab";
 import { getBuildTabLabel, phaseOptions } from "./config/plannerOptions";
 import { useGearPlannerState } from "./hooks/useGearPlannerState";
 import { useTalentPlannerState } from "./hooks/useTalentPlannerState";
+import { useBuffPlannerState } from "./hooks/useBuffPlannerState";
 import { useTankCalculations } from "./hooks/useTankCalculations";
 import type { BuildTab } from "./models/plannerModels";
 import "./App.css";
@@ -17,9 +19,11 @@ import "./App.css";
 function App() {
   const gearPlanner = useGearPlannerState();
   const talentPlanner = useTalentPlannerState();
+  const buffPlanner = useBuffPlannerState();
   const tankCalculations = useTankCalculations({
     equippedGear: gearPlanner.equippedGear,
     selectedTalentBuild: talentPlanner.selectedTalentBuild,
+    buffSelection: buffPlanner.buffSelection,
   });
 
   const [activeBuildTab, setActiveBuildTab] = useState<BuildTab>("gear");
@@ -72,7 +76,20 @@ function App() {
             />
           )}
 
-          {activeBuildTab !== "gear" && activeBuildTab !== "talents" && (
+          {activeBuildTab === "buffs" && (
+            <BuffsTab
+              buffs={buffPlanner.buffs}
+              activeBuffSelections={buffPlanner.activeBuffSelections}
+              activeBuffEffects={buffPlanner.activeBuffEffects}
+              onBuffActiveChange={buffPlanner.setBuffActive}
+              onBuffVariantChange={buffPlanner.setBuffVariant}
+              onClearBuffs={buffPlanner.clearBuffs}
+            />
+          )}
+
+          {activeBuildTab !== "gear" &&
+            activeBuildTab !== "talents" &&
+            activeBuildTab !== "buffs" && (
             <div className="placeholder-panel">
               <h2>{getBuildTabLabel(activeBuildTab)}</h2>
               <p className="muted">This section will be added later.</p>

@@ -912,3 +912,121 @@ button:disabled {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.buff-tab-content {
+  display: grid;
+  gap: 12px;
+}
+
+.buff-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.buff-toolbar h2 {
+  margin: 0 0 4px;
+}
+
+.buff-group-list {
+  display: grid;
+  gap: 12px;
+}
+
+.buff-group {
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: 10px;
+}
+
+.buff-group h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+
+.buff-option-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+  gap: 6px;
+}
+
+.buff-option {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  background: var(--bg-surface-dark);
+  border-radius: var(--radius-md);
+  padding: 7px;
+}
+
+.buff-option:hover,
+.buff-option-active {
+  border-color: var(--accent);
+}
+
+.buff-option-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.buff-option-toggle input {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.buff-option-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.buff-option-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.buff-option-meta-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.buff-option-meta-row span:last-child {
+  color: var(--good-text);
+}
+
+.buff-variant-select {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .buff-toolbar {
+    display: grid;
+  }
+}

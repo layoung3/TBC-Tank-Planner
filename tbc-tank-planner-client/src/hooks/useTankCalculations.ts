@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { calculateFinalCharacterStats, calculateGearStats } from "../api";
 import type {
   ActiveItemSetBonus,
+  CharacterBuffSelection,
   CharacterRace,
   CharacterTalentBuild,
   EquippedGearItem,
@@ -13,11 +14,13 @@ import { createEmptyStats } from "../utils/statFormatting";
 interface UseTankCalculationsParams {
   equippedGear: EquippedGearItem[];
   selectedTalentBuild: CharacterTalentBuild;
+  buffSelection: CharacterBuffSelection;
 }
 
 export function useTankCalculations({
   equippedGear,
   selectedTalentBuild,
+  buffSelection,
 }: UseTankCalculationsParams) {
   const [gearStatTotals, setGearStatTotals] = useState<StatBlock>(
     createEmptyStats()
@@ -89,7 +92,8 @@ export function useTankCalculations({
           selectedRace,
           equippedGear,
           includeHolyShield,
-          selectedTalentBuild
+          selectedTalentBuild,
+          buffSelection
         );
 
         if (!isCurrentRequest) {
@@ -113,7 +117,13 @@ export function useTankCalculations({
     return () => {
       isCurrentRequest = false;
     };
-  }, [selectedRace, equippedGear, includeHolyShield, selectedTalentBuild]);
+  }, [
+    selectedRace,
+    equippedGear,
+    includeHolyShield,
+    selectedTalentBuild,
+    buffSelection,
+  ]);
 
   return {
     gearStatTotals,
