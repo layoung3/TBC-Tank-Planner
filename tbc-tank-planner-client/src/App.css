@@ -1,184 +1,190 @@
+:root {
+  --bg-page: #111827;
+  --bg-panel: #1f2937;
+  --bg-surface: #111827;
+  --bg-surface-dark: #0f172a;
+  --bg-surface-darker: #0b1120;
+  --bg-icon: #030712;
+  --border: #374151;
+  --border-strong: #4b5563;
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  --text-soft: #d1d5db;
+  --accent: #facc15;
+  --good: #22c55e;
+  --good-text: #bbf7d0;
+  --bad: #ef4444;
+  --bad-text: #f87171;
+  --remove-text: #fca5a5;
+  --remove-hover: #fecaca;
+  --warning-text: #fde68a;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  background: #111827;
-  color: #f9fafb;
+  background: var(--bg-page);
+  color: var(--text-main);
   font-family: Arial, Helvetica, sans-serif;
 }
 
-button {
+button,
+input,
+select {
   font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 .app-shell {
   min-height: 100vh;
-  padding: 24px;
+  width: min(100%, 1720px);
+  margin: 0 auto;
+  padding: 20px 28px;
+}
+
+.app-header,
+.panel-title-row,
+.modal-header,
+.set-bonus-heading,
+.effect-card-heading,
+.talent-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.app-header,
+.panel-title-row,
+.modal-header {
+  align-items: center;
 }
 
 .app-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
+}
+
+.app-header h1,
+.panel-title-row h2,
+.modal-header h2,
+.talent-toolbar h2 {
+  margin: 0;
 }
 
 .app-header h1 {
-  margin: 0;
-  font-size: 32px;
+  font-size: 28px;
+}
+
+.app-header p,
+.panel-caption,
+.modal-subtitle,
+.muted,
+.item-details,
+.stat-note,
+.gear-slot-edit,
+.gear-detail-label,
+.socket-chip-label,
+.summary-card span,
+.compact-stat span,
+.effect-card-heading span {
+  color: var(--text-muted);
 }
 
 .app-header p {
   margin: 6px 0 0;
-  color: #9ca3af;
+}
+
+.class-tabs,
+.gear-slot-actions,
+.gear-status-row,
+.tag-list,
+.build-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .class-tabs {
-  display: flex;
   gap: 8px;
-}
-
-.class-tabs button {
-  border: 1px solid #374151;
-  background: #1f2937;
-  color: #f9fafb;
-  padding: 10px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.class-tabs button.active {
-  border-color: #facc15;
-}
-
-.class-tabs button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .main-layout {
   display: grid;
-  grid-template-columns: 420px 1fr 1fr;
-  gap: 16px;
+  grid-template-columns:
+    minmax(760px, 1.45fr)
+    minmax(300px, 0.65fr)
+    minmax(380px, 0.75fr);
   align-items: start;
+  gap: 14px;
 }
 
-.panel {
-  background: #1f2937;
-  border: 1px solid #374151;
-  border-radius: 12px;
-  padding: 16px;
+.panel,
+.modal,
+.gear-slot-card,
+.summary-card,
+.compact-stat,
+.item-row,
+.set-bonus-card,
+.effect-card,
+.wow-talent-tree {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.panel,
+.modal {
+  background: var(--bg-panel);
+  padding: 14px;
 }
 
 .panel h2 {
   margin-top: 0;
+  font-size: 20px;
 }
 
-.panel-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
+.build-panel,
+.stats-panel,
+.results-panel {
+  min-width: 0;
 }
 
-.panel-title-row h2 {
-  margin: 0;
+.stats-panel,
+.results-panel {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 40px);
+  overflow: auto;
 }
 
-.phase-filter {
-  display: grid;
-  gap: 4px;
-  color: #d1d5db;
-  font-size: 13px;
+.compact-panel-title {
+  margin-bottom: 8px;
 }
 
-.phase-filter select {
-  border: 1px solid #374151;
-  background: #111827;
-  color: #f9fafb;
-  border-radius: 8px;
-  padding: 7px 10px;
-  cursor: pointer;
+.panel-caption,
+.stat-note {
+  font-size: 12px;
+  line-height: 1.35;
 }
 
-.race-filter {
-  display: grid;
-  gap: 4px;
-  color: #d1d5db;
-  font-size: 13px;
+.panel-caption {
+  margin: 0 0 12px;
 }
 
-.race-filter select {
-  border: 1px solid #374151;
-  background: #111827;
-  color: #f9fafb;
-  border-radius: 8px;
-  padding: 7px 10px;
-  cursor: pointer;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.summary-card {
-  border: 1px solid #374151;
-  background: #111827;
-  border-radius: 10px;
-  padding: 12px;
-}
-
-.summary-card span {
-  display: block;
-  color: #9ca3af;
-  font-size: 13px;
-  margin-bottom: 6px;
-}
-
-.summary-card strong {
-  display: block;
-  color: #f9fafb;
-  font-size: 22px;
-}
-
-.modal-subtitle {
-  margin: 4px 0 0;
-  color: #9ca3af;
-  font-size: 13px;
-}
-
-.picker-toolbar {
-  display: grid;
-  grid-template-columns: 1fr 220px;
-  gap: 12px;
-  align-items: end;
-  margin-bottom: 16px;
-}
-
-.picker-search {
-  display: grid;
-  gap: 4px;
-  color: #d1d5db;
-  font-size: 13px;
-}
-
-.picker-search input {
-  border: 1px solid #374151;
-  background: #111827;
-  color: #f9fafb;
-  border-radius: 8px;
-  padding: 8px 10px;
-}
-
-.picker-search input::placeholder {
-  color: #6b7280;
+.error {
+  color: var(--bad-text);
 }
 
 .warning-list {
@@ -187,422 +193,143 @@ button {
 
 .warning-message {
   margin: 6px 0;
-  color: #facc15;
+  color: var(--accent);
   font-size: 13px;
 }
 
-.gear-grid {
+.class-tabs button,
+.build-tabs button,
+.secondary-button,
+.compact-remove-button,
+.gear-detail-chip,
+.socket-chip,
+.item-row,
+.modal-header button,
+.mini-toggle,
+.wow-talent-icon {
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+}
+
+.class-tabs button,
+.build-tabs button,
+.secondary-button,
+.compact-remove-button,
+.modal-header button,
+.mini-toggle {
+  background: var(--bg-surface);
+}
+
+.class-tabs button {
+  background: var(--bg-panel);
+  color: var(--text-main);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+}
+
+.class-tabs button.active,
+.build-tabs button.active,
+.secondary-button:hover,
+.item-row:hover,
+.gear-detail-chip:hover,
+.socket-chip:hover,
+.wow-talent-icon:hover,
+.wow-talent-icon-active {
+  border-color: var(--accent);
+}
+
+.class-tabs button:disabled,
+.build-tabs button:disabled {
+  opacity: 0.4;
+}
+
+.secondary-button:hover,
+.build-tabs button.active,
+.wow-talent-icon-active {
+  color: var(--text-main);
+}
+
+.build-tabs {
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.build-tabs button,
+.mini-toggle,
+.gear-status-pill,
+.tag,
+.wow-talent-rank {
+  border-radius: 999px;
+}
+
+.build-tabs button {
+  padding: 7px 11px;
+  font-size: 12px;
+}
+
+.secondary-button {
+  border-radius: var(--radius-md);
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.placeholder-panel {
+  min-height: 260px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
 }
 
-.gear-slot {
-  text-align: left;
-  min-height: 72px;
-  border: 1px solid #374151;
-  background: #111827;
-  color: #f9fafb;
-  border-radius: 10px;
-  padding: 10px;
-  cursor: pointer;
-}
-
-.gear-slot:hover {
-  border-color: #facc15;
-}
-
-.gear-slot-label {
-  display: block;
-  color: #9ca3af;
-  font-size: 13px;
-  margin-bottom: 6px;
-}
-
-.gear-slot-item {
-  display: block;
-  font-weight: 700;
-}
-
-.muted {
-  color: #9ca3af;
-}
-
-.error {
-  color: #f87171;
-}
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgb(0 0 0 / 72%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-.modal {
-  width: min(760px, 100%);
-  max-height: 80vh;
-  overflow: auto;
-  background: #1f2937;
-  border: 1px solid #4b5563;
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.modal-header h2 {
-  margin: 0;
-}
-
-.modal-header button {
-  background: #374151;
-  color: #f9fafb;
-  border: 1px solid #4b5563;
-  border-radius: 8px;
-  padding: 6px 10px;
-  cursor: pointer;
-}
-
-.item-list {
+.phase-filter,
+.race-filter,
+.picker-search {
   display: grid;
-  gap: 8px;
+  gap: 4px;
+  color: var(--text-soft);
+  font-size: 13px;
 }
 
-.item-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-  text-align: left;
-  border: 1px solid #374151;
-  background: #111827;
-  color: #f9fafb;
-  border-radius: 10px;
-  padding: 12px;
+.phase-filter select,
+.race-filter select,
+.picker-search input {
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+}
+
+.phase-filter select,
+.race-filter select {
   cursor: pointer;
 }
 
-.item-row:hover {
-  border-color: #facc15;
-}
-
-.item-name {
-  display: block;
-  font-weight: 700;
-}
-
-.item-details {
-  display: block;
-  color: #9ca3af;
-  font-size: 13px;
-  margin-top: 4px;
-}
-
-.item-stats {
-  color: #d1d5db;
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.gear-slot-content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.item-main {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.item-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  object-fit: cover;
-  flex: 0 0 auto;
-  border: 1px solid #4b5563;
-  background: #030712;
-}
-
-.item-icon-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.picker-search input::placeholder {
   color: #6b7280;
-  font-weight: 700;
 }
 
-.stat-list {
+.gear-grid,
+.summary-grid,
+.compact-stat-grid,
+.item-list,
+.set-bonus-list,
+.effect-list,
+.talent-tab-content,
+.gear-column,
+.gear-card-details,
+.socket-chip-list {
   display: grid;
-  gap: 8px;
-}
-
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 8px 0;
-  border-bottom: 1px solid #374151;
-}
-
-.stat-row span {
-  color: #d1d5db;
-}
-
-.stat-row strong {
-  color: #f9fafb;
-}
-
-.stat-note {
-  margin-top: 16px;
-  color: #9ca3af;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.status-card small {
-  display: block;
-  margin-top: 4px;
-  color: #9ca3af;
-  font-size: 12px;
-}
-
-.status-good {
-  border-color: #22c55e;
-}
-
-.status-bad {
-  border-color: #ef4444;
-}
-
-.subsection-title {
-  margin: 18px 0 10px;
-  color: #f9fafb;
-  font-size: 16px;
-}
-
-.effect-toggle-row {
-  display: grid;
-  gap: 6px;
-  border: 1px solid #374151;
-  background: #111827;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 16px;
-}
-
-.effect-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #f9fafb;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.effect-toggle input {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-.effect-note {
-  color: #9ca3af;
-  font-size: 13px;
-}
-
-.gear-slot-card {
-  display: grid;
-  gap: 6px;
-}
-
-.gear-slot-main {
-  width: 100%;
-}
-
-.gear-slot-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.enchant-button,
-.remove-enchant-button {
-  border: 1px solid #374151;
-  background: #111827;
-  color: #d1d5db;
-  border-radius: 8px;
-  padding: 7px 8px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.enchant-button {
-  flex: 1;
-  text-align: left;
-}
-
-.enchant-button:hover,
-.remove-enchant-button:hover {
-  border-color: #facc15;
-  color: #f9fafb;
-}
-
-.remove-enchant-button {
-  color: #fca5a5;
-}
-
-.socket-list {
-  display: grid;
-  gap: 6px;
-}
-
-.socket-row {
-  display: flex;
-  gap: 6px;
-}
-
-.gem-button,
-.remove-gem-button {
-  border: 1px solid #374151;
-  background: #111827;
-  color: #d1d5db;
-  border-radius: 8px;
-  padding: 7px 8px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.gem-button {
-  flex: 1;
-  display: grid;
-  gap: 2px;
-  text-align: left;
-}
-
-.gem-button:hover,
-.remove-gem-button:hover {
-  border-color: #facc15;
-  color: #f9fafb;
-}
-
-.remove-gem-button {
-  color: #fca5a5;
-}
-
-.socket-color {
-  color: #9ca3af;
-  font-size: 11px;
-}
-
-.gem-toggle {
-  margin-bottom: 16px;
-}
-
-.gem-button-matched {
-  border-color: #22c55e;
-}
-
-.socket-bonus {
-  border: 1px solid #374151;
-  border-radius: 8px;
-  padding: 7px 8px;
-  font-size: 12px;
-  background: #0f172a;
-}
-
-.socket-bonus-active {
-  color: #bbf7d0;
-  border-color: #22c55e;
-}
-
-.socket-bonus-inactive {
-  color: #9ca3af;
-}
-
-.meta-gem-status {
-  border: 1px solid #374151;
-  border-radius: 8px;
-  padding: 7px 8px;
-  font-size: 12px;
-  background: #0f172a;
-}
-
-.meta-gem-active {
-  color: #bbf7d0;
-  border-color: #22c55e;
-}
-
-.meta-gem-inactive {
-  color: #fde68a;
-  border-color: #facc15;
-}
-
-.meta-gem-requirement {
-  margin-top: 3px;
-  color: #9ca3af;
-}
-
-/* Compact layout pass */
-
-.app-shell {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 20px 24px;
-}
-
-.app-header {
-  margin-bottom: 18px;
-}
-
-.app-header h1 {
-  font-size: 28px;
-}
-
-.main-layout {
-  grid-template-columns: minmax(520px, 620px) minmax(300px, 360px) minmax(340px, 400px);
-  justify-content: center;
-  gap: 14px;
-}
-
-.panel {
-  padding: 14px;
-}
-
-.panel h2 {
-  font-size: 20px;
-}
-
-.compact-panel-title {
-  margin-bottom: 8px;
-}
-
-.panel-caption {
-  margin: 0 0 12px;
-  color: #9ca3af;
-  font-size: 12px;
-  line-height: 1.35;
 }
 
 .gear-grid {
-  grid-template-columns: 1fr 1fr;
-  align-items: start;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+  align-items: start;
 }
 
 .gear-column {
-  display: grid;
   gap: 10px;
   align-content: start;
 }
@@ -610,70 +337,101 @@ button {
 .gear-slot-card {
   display: grid;
   gap: 7px;
-  border: 1px solid #374151;
-  background: #111827;
-  border-radius: 10px;
+  background: var(--bg-surface);
   padding: 8px;
 }
 
-.gear-slot-card:hover {
-  border-color: #4b5563;
+.gear-slot-card:hover,
+.gear-slot-card-equipped {
+  border-color: var(--border-strong);
 }
 
 .gear-slot-card-equipped {
-  background: #0f172a;
+  background: var(--bg-surface-dark);
+}
+
+.gear-slot-card-equipped .gear-slot-item {
+  color: #ffffff;
 }
 
 .gear-slot {
+  width: 100%;
   min-height: 0;
   border: 0;
   background: transparent;
-  border-radius: 8px;
+  color: var(--text-main);
+  border-radius: var(--radius-md);
   padding: 0;
+  text-align: left;
 }
 
 .gear-slot:hover {
   border-color: transparent;
 }
 
-.gear-slot-topline {
+.gear-slot-topline,
+.gear-slot-content,
+.item-main {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
+}
+
+.gear-slot-topline {
+  justify-content: space-between;
   margin-bottom: 5px;
 }
 
 .gear-slot-label {
+  display: block;
   margin: 0;
+  color: var(--text-muted);
   font-size: 12px;
 }
 
-.gear-slot-edit {
-  color: #9ca3af;
+.gear-slot-edit,
+.gear-detail-label,
+.socket-chip-label,
+.summary-card small,
+.compact-stat small,
+.set-bonus-heading span,
+.effect-card-heading span {
   font-size: 11px;
 }
 
-.gear-slot-content {
-  gap: 8px;
-}
-
-.item-icon {
-  width: 30px;
-  height: 30px;
-}
-
 .gear-slot-item {
+  display: -webkit-box;
+  font-weight: 700;
   font-size: 14px;
   line-height: 1.25;
-  display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
+.item-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex: 0 0 auto;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-icon);
+}
+
+.item-icon-placeholder,
+.wow-talent-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.item-icon-placeholder {
+  color: #6b7280;
+}
+
 .gear-card-details {
-  display: grid;
   gap: 6px;
 }
 
@@ -687,42 +445,43 @@ button {
 .gear-detail-chip,
 .socket-chip {
   min-width: 0;
-  border: 1px solid #374151;
-  background: #0b1120;
-  color: #d1d5db;
-  border-radius: 8px;
+  background: var(--bg-surface-darker);
+  border-radius: var(--radius-md);
   padding: 6px 7px;
-  cursor: pointer;
   text-align: left;
-}
-
-.gear-detail-chip:hover,
-.socket-chip:hover {
-  border-color: #facc15;
 }
 
 .gear-detail-chip-filled,
 .socket-chip-filled {
-  background: #111827;
+  background: var(--bg-surface);
 }
 
 .socket-chip-matched {
-  border-color: #22c55e;
+  border-color: var(--good);
+}
+
+.gear-detail-label,
+.socket-chip-label,
+.gear-detail-value,
+.socket-chip-value,
+.item-name,
+.item-details,
+.summary-card span,
+.summary-card strong,
+.compact-stat span,
+.compact-stat strong {
+  display: block;
 }
 
 .gear-detail-label,
 .socket-chip-label {
-  display: block;
-  color: #9ca3af;
-  font-size: 10px;
   line-height: 1.1;
 }
 
 .gear-detail-value,
 .socket-chip-value {
-  display: block;
   margin-top: 2px;
-  color: #f9fafb;
+  color: var(--text-main);
   font-size: 11px;
   line-height: 1.25;
   overflow: hidden;
@@ -731,111 +490,147 @@ button {
 }
 
 .compact-remove-button {
-  border: 1px solid #374151;
-  background: #111827;
-  color: #fca5a5;
-  border-radius: 8px;
-  cursor: pointer;
+  color: var(--remove-text);
+  border-radius: var(--radius-md);
   padding: 0;
   font-size: 16px;
   line-height: 1;
 }
 
 .compact-remove-button:hover {
-  border-color: #f87171;
-  color: #fecaca;
-}
-
-.socket-chip-list {
-  display: grid;
-  gap: 5px;
+  border-color: var(--bad-text);
+  color: var(--remove-hover);
 }
 
 .gear-status-row {
-  display: flex;
-  flex-wrap: wrap;
   gap: 5px;
 }
 
-.gear-status-pill {
-  border: 1px solid #374151;
-  background: #0b1120;
-  border-radius: 999px;
-  padding: 4px 7px;
+.gear-status-pill,
+.tag {
+  border: 1px solid var(--border);
+  background: var(--bg-surface-darker);
   font-size: 10px;
   line-height: 1.2;
 }
 
-.gear-status-pill-good {
-  color: #bbf7d0;
-  border-color: #22c55e;
+.gear-status-pill {
+  max-width: 100%;
+  padding: 4px 7px;
+}
+
+.gear-status-pill-good,
+.status-good {
+  border-color: var(--good);
+}
+
+.gear-status-pill-good,
+.tag,
+.set-bonus-heading span,
+.wow-talent-rank {
+  color: var(--good-text);
 }
 
 .gear-status-pill-warning {
-  color: #fde68a;
-  border-color: #facc15;
+  color: var(--warning-text);
+  border-color: var(--accent);
 }
 
 .gear-status-pill-muted {
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 .mini-toggle {
   display: flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid #374151;
-  background: #111827;
-  color: #d1d5db;
-  border-radius: 999px;
   padding: 6px 9px;
   font-size: 12px;
+}
+
+.mini-toggle input,
+.effect-toggle input {
+  width: 14px;
+  height: 14px;
   cursor: pointer;
 }
 
-.mini-toggle input {
-  width: 14px;
-  height: 14px;
-}
-
+.summary-grid,
 .compact-stat-grid {
-  display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
-.compact-stat {
-  border: 1px solid #374151;
-  background: #111827;
-  border-radius: 8px;
-  padding: 8px;
+.summary-grid {
+  margin-bottom: 16px;
 }
 
+.summary-card,
+.compact-stat {
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  padding: 9px;
+}
+
+.summary-card span,
 .compact-stat span {
-  display: block;
-  color: #9ca3af;
   font-size: 11px;
   line-height: 1.2;
 }
 
+.summary-card span {
+  margin-bottom: 4px;
+}
+
+.summary-card strong,
 .compact-stat strong {
+  margin-top: 4px;
+  color: var(--text-main);
+}
+
+.summary-card strong {
+  font-size: 19px;
+}
+
+.compact-stat strong {
+  font-size: 16px;
+}
+
+.summary-card small,
+.compact-stat small,
+.status-card small {
   display: block;
   margin-top: 4px;
-  color: #f9fafb;
+  color: var(--text-muted);
+  line-height: 1.25;
+}
+
+.compact-stat small {
+  font-size: 10px;
+}
+
+.status-bad {
+  border-color: var(--bad);
+}
+
+.subsection-title,
+.section-title {
+  margin: 18px 0 10px;
+  color: var(--text-main);
   font-size: 16px;
 }
 
 .tank-table-grid .stat-row {
   display: block;
-  border: 1px solid #374151;
-  background: #111827;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
   padding: 8px;
 }
 
 .tank-table-grid .stat-row span {
   display: block;
-  color: #9ca3af;
+  color: var(--text-muted);
   font-size: 11px;
 }
 
@@ -845,96 +640,13 @@ button {
   font-size: 15px;
 }
 
-.summary-grid {
-  gap: 8px;
+.stat-note {
+  margin-top: 16px;
+  font-size: 13px;
 }
 
-.summary-card {
-  padding: 9px;
-}
-
-.summary-card span {
-  font-size: 11px;
-  margin-bottom: 4px;
-}
-
-.summary-card strong {
-  font-size: 19px;
-}
-
-.status-card small {
-  font-size: 11px;
-}
-
-/* Wide dashboard layout pass */
-
-.app-shell {
-  width: min(100%, 1720px);
-  max-width: none;
-  margin: 0 auto;
-  padding: 20px 28px;
-}
-
-.main-layout {
-  grid-template-columns:
-    minmax(760px, 1.45fr)
-    minmax(300px, 0.65fr)
-    minmax(380px, 0.75fr);
-  justify-content: stretch;
-  align-items: start;
-  gap: 14px;
-}
-
-.gear-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.stats-panel,
-.results-panel {
-  position: sticky;
-  top: 16px;
-  max-height: calc(100vh - 40px);
-  overflow: auto;
-}
-
-.results-panel {
-  min-width: 0;
-}
-
-.stats-panel {
-  min-width: 0;
-}
-
-.gear-slot-card-equipped {
-  border-color: #4b5563;
-}
-
-.gear-slot-card-equipped .gear-slot-item {
-  color: #ffffff;
-}
-
-.gear-status-pill {
-  max-width: 100%;
-}
-
-.summary-card small {
-  display: block;
-  margin-top: 4px;
-  color: #9ca3af;
-  font-size: 11px;
-}
-
-.compact-stat small {
-  display: block;
-  margin-top: 4px;
-  color: #9ca3af;
-  font-size: 10px;
-  line-height: 1.25;
-}
-
-.set-bonus-list {
-  display: grid;
+.set-bonus-list,
+.effect-list {
   gap: 8px;
   margin-top: 12px;
 }
@@ -945,188 +657,79 @@ button {
 
 .set-bonus-title {
   margin: 0;
-  color: #f9fafb;
+  color: var(--text-main);
   font-size: 14px;
 }
 
-.set-bonus-card {
-  border: 1px solid #374151;
-  background: #0f172a;
-  border-radius: 8px;
+.set-bonus-card,
+.effect-card {
+  background: var(--bg-surface-dark);
+  border-radius: var(--radius-md);
   padding: 8px;
 }
 
-.set-bonus-heading {
-  display: flex;
-  justify-content: space-between;
+.set-bonus-heading,
+.effect-card-heading {
   gap: 8px;
+}
+
+.set-bonus-heading {
   align-items: baseline;
 }
 
-.set-bonus-heading strong {
-  color: #f9fafb;
+.effect-card-heading {
+  align-items: start;
+}
+
+.set-bonus-heading strong,
+.effect-card-heading strong {
+  display: block;
+  color: var(--text-main);
   font-size: 13px;
 }
 
 .set-bonus-heading span {
-  color: #bbf7d0;
-  font-size: 11px;
   white-space: nowrap;
+}
+
+.effect-card-heading span {
+  display: block;
+  margin-top: 3px;
+}
+
+.set-bonus-card p,
+.effect-card p {
+  color: var(--text-soft);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .set-bonus-card p {
   margin: 5px 0 0;
-  color: #d1d5db;
-  font-size: 12px;
-  line-height: 1.35;
 }
 
-.talents-panel {
-  grid-column: 1 / -1;
+.effect-card p {
+  margin: 7px 0 0;
 }
 
-.secondary-button {
-  border: 1px solid #374151;
-  background: #111827;
-  color: #d1d5db;
-  border-radius: 8px;
-  padding: 7px 10px;
-  cursor: pointer;
-  font-size: 12px;
+.tag-list {
+  justify-content: flex-end;
+  gap: 4px;
 }
 
-.secondary-button:hover {
-  border-color: #facc15;
-  color: #f9fafb;
-}
-
-.talent-tree-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.talent-tree-card {
-  border: 1px solid #374151;
-  background: #111827;
-  border-radius: 10px;
-  padding: 10px;
-}
-
-.talent-tree-card h3 {
-  margin: 0 0 10px;
-  color: #f9fafb;
-  font-size: 15px;
-}
-
-.talent-grid {
-  display: grid;
-  gap: 8px;
-}
-
-.talent-card {
-  border: 1px solid #374151;
-  background: #0f172a;
-  border-radius: 8px;
-  padding: 8px;
-}
-
-.talent-card-active {
-  border-color: #facc15;
-}
-
-.talent-card-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  align-items: baseline;
-}
-
-.talent-card-header strong {
-  color: #f9fafb;
-  font-size: 13px;
-}
-
-.talent-card-header span {
-  color: #bbf7d0;
-  font-size: 11px;
+.tag {
+  background: var(--bg-surface);
+  padding: 3px 6px;
   white-space: nowrap;
 }
 
-.talent-card p {
-  min-height: 32px;
-  margin: 6px 0;
-  color: #9ca3af;
-  font-size: 11px;
-  line-height: 1.35;
-}
-
-.talent-rank-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.talent-rank-actions button {
-  border: 1px solid #374151;
-  background: #111827;
-  color: #f9fafb;
-  border-radius: 6px;
-  padding: 5px;
-  cursor: pointer;
-}
-
-.talent-rank-actions button:hover {
-  border-color: #facc15;
-}
-
-.build-panel {
-  min-width: 0;
-}
-
-.build-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid #374151;
-  padding-bottom: 10px;
-}
-
-.build-tabs button {
-  border: 1px solid #374151;
-  background: #111827;
-  color: #d1d5db;
-  border-radius: 999px;
-  padding: 7px 11px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.build-tabs button.active {
-  border-color: #facc15;
-  color: #f9fafb;
-}
-
-.build-tabs button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.talent-tab-content {
-  display: grid;
+.talent-tab-content,
+.item-list {
   gap: 12px;
 }
 
 .talent-toolbar {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
   align-items: start;
-}
-
-.talent-toolbar h2 {
-  margin: 0 0 4px;
 }
 
 .wow-talent-tree-list {
@@ -1136,9 +739,7 @@ button {
 }
 
 .wow-talent-tree {
-  border: 1px solid #374151;
-  background: #111827;
-  border-radius: 10px;
+  background: var(--bg-surface);
   padding: 10px;
 }
 
@@ -1159,22 +760,11 @@ button {
   position: relative;
   width: 42px;
   height: 42px;
-  border: 1px solid #374151;
-  background: #030712;
-  color: #9ca3af;
-  border-radius: 8px;
+  background: var(--bg-icon);
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
   padding: 0;
-  cursor: pointer;
   overflow: hidden;
-}
-
-.wow-talent-icon:hover {
-  border-color: #facc15;
-}
-
-.wow-talent-icon-active {
-  border-color: #facc15;
-  color: #f9fafb;
 }
 
 .wow-talent-icon img {
@@ -1184,11 +774,7 @@ button {
 }
 
 .wow-talent-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   height: 100%;
-  font-weight: 700;
   font-size: 12px;
 }
 
@@ -1197,95 +783,103 @@ button {
   right: 2px;
   bottom: 2px;
   min-width: 22px;
-  border-radius: 999px;
   background: rgb(0 0 0 / 80%);
-  color: #bbf7d0;
   font-size: 10px;
   line-height: 1;
   padding: 3px 4px;
 }
 
-.placeholder-panel {
-  min-height: 260px;
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  text-align: center;
-}
-
-.section-title {
-  margin: 18px 0 10px;
-  color: #f9fafb;
-  font-size: 16px;
-}
-
-.effect-list {
-  display: grid;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.effect-card {
-  border: 1px solid #374151;
-  background: #0f172a;
-  border-radius: 8px;
-  padding: 8px;
-}
-
-.effect-card-heading {
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  align-items: start;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(0 0 0 / 72%);
 }
 
-.effect-card-heading strong {
-  display: block;
-  color: #f9fafb;
+.modal {
+  width: min(760px, 100%);
+  max-height: 80vh;
+  overflow: auto;
+  border-color: var(--border-strong);
+  border-radius: var(--radius-xl);
+  padding: 16px;
+}
+
+.modal-header {
+  margin-bottom: 12px;
+}
+
+.modal-header button {
+  border-color: var(--border-strong);
+  background: var(--border);
+  color: var(--text-main);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+}
+
+.modal-subtitle {
+  margin: 4px 0 0;
   font-size: 13px;
 }
 
-.effect-card-heading span {
-  display: block;
-  margin-top: 3px;
-  color: #9ca3af;
-  font-size: 11px;
+.picker-toolbar {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
 }
 
-.effect-card p {
-  margin: 7px 0 0;
-  color: #d1d5db;
-  font-size: 12px;
-  line-height: 1.35;
+.item-list {
+  gap: 8px;
 }
 
-.tag-list {
+.item-row {
   display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 4px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-surface);
+  color: var(--text-main);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  text-align: left;
 }
 
-.tag {
-  border: 1px solid #374151;
-  background: #111827;
-  border-radius: 999px;
-  color: #bbf7d0;
-  font-size: 10px;
-  padding: 3px 6px;
+.item-main {
+  gap: 12px;
+}
+
+.item-name {
+  font-weight: 700;
+}
+
+.item-details {
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.item-stats {
+  color: var(--text-soft);
+  font-size: 13px;
   white-space: nowrap;
 }
 
-@media (max-width: 1100px) {
-  .wow-talent-tree-list {
-    grid-template-columns: 1fr;
-  }
+.effect-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main);
+  font-weight: 700;
+  cursor: pointer;
 }
 
-@media (max-width: 1100px) {
-  .talent-tree-list {
-    grid-template-columns: 1fr;
-  }
+.gem-toggle {
+  margin-bottom: 16px;
 }
 
 @media (max-width: 1500px) {
@@ -1302,7 +896,8 @@ button {
 }
 
 @media (max-width: 1100px) {
-  .main-layout {
+  .main-layout,
+  .wow-talent-tree-list {
     grid-template-columns: 1fr;
   }
 
