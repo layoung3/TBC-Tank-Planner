@@ -7,360 +7,35 @@ import {
   getItems,
   getTalents,
 } from "./api";
+import { BuildTabs } from "./components/BuildTabs";
+import { EffectSummaryList } from "./components/EffectSummaryList";
+import { ItemPickerModal } from "./components/ItemPickerModal";
+import { EnchantPickerModal } from "./components/EnchantPickerModal";
+import { GemPickerModal } from "./components/GemPickerModal";
+import { GearTab } from "./components/GearTab";
+import { TalentsTab } from "./components/TalentsTab";
+import {
+  getBuildTabLabel,
+  initialGear,
+  phaseOptions,
+  raceOptions,
+} from "./config/plannerOptions";
+import type { BuildTab, EquippedSlot } from "./models/plannerModels";
 import type {
   CharacterRace,
   CharacterTalentBuild,
   EquippedGearItem,
   ActiveItemSetBonus,
   FinalCharacterStatsResponse,
-  ItemSlot,
   SocketColor,
   StatBlock,
-  TalentDefinition,
   TalentTreeDefinition,
-  ActiveTalentEffect,
   TbcEnchant,
   TbcGem,
   TbcItem,
 } from "./types";
+import { createEmptyStats } from "./utils/statFormatting";
 import "./App.css";
-
-interface EquippedSlot {
-  slotKey: string;
-  slot: ItemSlot;
-  label: string;
-  item?: TbcItem;
-  enchant?: TbcEnchant;
-  gems?: Array<TbcGem | null>;
-}
-
-interface PhaseFilterOption {
-  label: string;
-  value?: number;
-}
-
-const phaseOptions: PhaseFilterOption[] = [
-  { label: "All TBC", value: undefined },
-  { label: "Pre-Raid / Phase 0", value: 0 },
-  { label: "Through Phase 1", value: 1 },
-  { label: "Through Phase 2", value: 2 },
-  { label: "Through Phase 3", value: 3 },
-  { label: "Through Phase 4", value: 4 },
-  { label: "Through Phase 5", value: 5 },
-];
-
-interface RaceOption {
-  label: string;
-  value: CharacterRace;
-}
-
-const raceOptions: RaceOption[] = [
-  { label: "Blood Elf", value: "BloodElf" },
-  { label: "Draenei", value: "Draenei" },
-  { label: "Human", value: "Human" },
-  { label: "Dwarf", value: "Dwarf" },
-];
-
-type BuildTab =
-  | "gear"
-  | "talents"
-  | "buffs"
-  | "encounter"
-  | "sim"
-  | "optimizer";
-
-interface BuildTabOption {
-  id: BuildTab;
-  label: string;
-  isDisabled?: boolean;
-}
-
-const buildTabOptions: BuildTabOption[] = [
-  { id: "gear", label: "Gear" },
-  { id: "talents", label: "Talents" },
-  { id: "buffs", label: "Buffs", isDisabled: true },
-  { id: "encounter", label: "Encounter", isDisabled: true },
-  { id: "sim", label: "Sim", isDisabled: true },
-  { id: "optimizer", label: "Optimizer", isDisabled: true },
-];
-
-const initialGear: EquippedSlot[] = [
-  { slotKey: "Head", slot: "Head", label: "Head" },
-  { slotKey: "Neck", slot: "Neck", label: "Neck" },
-  { slotKey: "Shoulders", slot: "Shoulders", label: "Shoulders" },
-  { slotKey: "Back", slot: "Back", label: "Back" },
-  { slotKey: "Chest", slot: "Chest", label: "Chest" },
-  { slotKey: "Wrist", slot: "Wrist", label: "Wrist" },
-  { slotKey: "Hands", slot: "Hands", label: "Hands" },
-  { slotKey: "Waist", slot: "Waist", label: "Waist" },
-  { slotKey: "Legs", slot: "Legs", label: "Legs" },
-  { slotKey: "Feet", slot: "Feet", label: "Feet" },
-  { slotKey: "Ring1", slot: "Ring", label: "Ring 1" },
-  { slotKey: "Ring2", slot: "Ring", label: "Ring 2" },
-  { slotKey: "Trinket1", slot: "Trinket", label: "Trinket 1" },
-  { slotKey: "Trinket2", slot: "Trinket", label: "Trinket 2" },
-  { slotKey: "MainHand", slot: "MainHand", label: "Main Hand" },
-  { slotKey: "Shield", slot: "Shield", label: "Shield" },
-  { slotKey: "Libram", slot: "Libram", label: "Libram" },
-];
-
-function createEmptyStats(): StatBlock {
-  return {
-    stamina: 0,
-    strength: 0,
-    agility: 0,
-    intellect: 0,
-    armor: 0,
-    arcaneResistance: 0,
-    fireResistance: 0,
-    frostResistance: 0,
-    natureResistance: 0,
-    shadowResistance: 0,
-    defenseRating: 0,
-    dodgeRating: 0,
-    parryRating: 0,
-    blockRating: 0,
-    blockValue: 0,
-    resilienceRating: 0,
-    hitRating: 0,
-    spellHitRating: 0,
-    expertiseRating: 0,
-    attackPower: 0,
-    spellPower: 0,
-    mp5: 0,
-  };
-}
-
-function ItemIcon({ item }: { item?: TbcItem }) {
-  if (item?.iconUrl) {
-    return (
-      <img
-        className="item-icon"
-        src={item.iconUrl}
-        alt={`${item.name} icon`}
-      />
-    );
-  }
-
-  return <div className="item-icon item-icon-placeholder">?</div>;
-}
-
-function formatStatSummary(stats: StatBlock): string {
-  const statEntries: Array<[string, number]> = [
-    ["Stam", stats.stamina],
-    ["Str", stats.strength],
-    ["Agi", stats.agility],
-    ["Int", stats.intellect],
-    ["Armor", stats.armor],
-    ["Arcane Res", stats.arcaneResistance],
-    ["Fire Res", stats.fireResistance],
-    ["Frost Res", stats.frostResistance],
-    ["Nature Res", stats.natureResistance],
-    ["Shadow Res", stats.shadowResistance],
-    ["Def", stats.defenseRating],
-    ["Dodge", stats.dodgeRating],
-    ["Parry", stats.parryRating],
-    ["Block", stats.blockRating],
-    ["Block Value", stats.blockValue],
-    ["Resil", stats.resilienceRating],
-    ["Hit", stats.hitRating],
-    ["Spell Hit", stats.spellHitRating],
-    ["Expertise", stats.expertiseRating],
-    ["AP", stats.attackPower],
-    ["SP", stats.spellPower],
-    ["MP5", stats.mp5],
-  ];
-
-  return statEntries
-    .filter(([, value]) => value > 0)
-    .map(([label, value]) => `+${value} ${label}`)
-    .join(", ");
-}
-
-function doesGemMatchSocket(
-  gem: TbcGem | null | undefined,
-  socketColor: SocketColor
-): boolean {
-  if (!gem) {
-    return false;
-  }
-
-  if (socketColor === "Meta") {
-    return gem.color === "Meta";
-  }
-
-  return gem.matchesSocketColors.includes(socketColor);
-}
-
-function isSocketBonusActive(
-  item: TbcItem,
-  gems?: Array<TbcGem | null>
-): boolean {
-  if (item.sockets.length === 0) {
-    return false;
-  }
-
-  if (!gems || gems.length < item.sockets.length) {
-    return false;
-  }
-
-  return item.sockets.every((socketColor, index) =>
-    doesGemMatchSocket(gems[index], socketColor)
-  );
-}
-
-function canGemFitSocket(
-  gem: TbcGem,
-  socketColor: SocketColor
-): boolean {
-  if (socketColor === "Meta") {
-    return gem.color === "Meta";
-  }
-
-  return gem.color !== "Meta";
-}
-
-function getValidRegularGemsForMetaRequirements(
-  gear: EquippedSlot[]
-): TbcGem[] {
-  const validRegularGems: TbcGem[] = [];
-
-  gear.forEach((gearSlot) => {
-    if (!gearSlot.item || !gearSlot.gems) {
-      return;
-    }
-
-    const socketCountToCheck = Math.min(
-      gearSlot.item.sockets.length,
-      gearSlot.gems.length
-    );
-
-    for (let index = 0; index < socketCountToCheck; index += 1) {
-      const gem = gearSlot.gems[index];
-      const socketColor = gearSlot.item.sockets[index];
-
-      if (!gem || gem.color === "Meta") {
-        continue;
-      }
-
-      if (!canGemFitSocket(gem, socketColor)) {
-        continue;
-      }
-
-      validRegularGems.push(gem);
-    }
-  });
-
-  return validRegularGems;
-}
-
-function getMetaRequirementProgress(metaGem: TbcGem, gear: EquippedSlot[]) {
-  const requirements = metaGem.metaRequirements ?? [];
-  const validRegularGems = getValidRegularGemsForMetaRequirements(gear);
-
-  return requirements.map((requirement) => {
-    const currentCount = validRegularGems.filter((gem) =>
-      gem.matchesSocketColors.includes(requirement.color)
-    ).length;
-
-    return {
-      color: requirement.color,
-      requiredCount: requirement.count,
-      currentCount,
-      isMet: currentCount >= requirement.count,
-    };
-  });
-}
-
-function isMetaGemActive(metaGem: TbcGem, gear: EquippedSlot[]): boolean {
-  if (metaGem.color !== "Meta") {
-    return true;
-  }
-
-  const progress = getMetaRequirementProgress(metaGem, gear);
-
-  if (progress.length === 0) {
-    return true;
-  }
-
-  return progress.every((requirement) => requirement.isMet);
-}
-
-function formatMetaRequirementProgress(
-  metaGem: TbcGem,
-  gear: EquippedSlot[]
-): string {
-  const progress = getMetaRequirementProgress(metaGem, gear);
-
-  if (progress.length === 0) {
-    return metaGem.metaRequirementDescription ?? "No requirement listed";
-  }
-
-  return progress
-    .map(
-      (requirement) =>
-        `${requirement.currentCount}/${requirement.requiredCount} ${requirement.color}`
-    )
-    .join(", ");
-}
-
-function getSocketDisplayIndexes(sockets: SocketColor[]): number[] {
-  return sockets
-    .map((_, index) => index)
-    .sort((leftIndex, rightIndex) => {
-      const leftSocket = sockets[leftIndex];
-      const rightSocket = sockets[rightIndex];
-
-      if (leftSocket === "Meta" && rightSocket !== "Meta") {
-        return -1;
-      }
-
-      if (leftSocket !== "Meta" && rightSocket === "Meta") {
-        return 1;
-      }
-
-      return leftIndex - rightIndex;
-    });
-}
-
-function renderEffectList(
-  title: string,
-  effects: ActiveTalentEffect[],
-  emptyMessage?: string
-) {
-  if (effects.length === 0) {
-    return emptyMessage ? <p className="muted">{emptyMessage}</p> : null;
-  }
-
-  return (
-    <div className="effect-list">
-      <h3 className="section-title">{title}</h3>
-
-      {effects.map((effect) => (
-        <article className="effect-card" key={effect.key}>
-          <div className="effect-card-heading">
-            <div>
-              <strong>{effect.name}</strong>
-              <span>
-                {effect.treeKey} • Rank {effect.rank}/{effect.maxRank}
-              </span>
-            </div>
-
-            <div className="tag-list">
-              {effect.appliesTo.map((scope) => (
-                <span className="tag" key={`${effect.key}-${scope}`}>
-                  {scope}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <p>{effect.description}</p>
-        </article>
-      ))}
-    </div>
-  );
-}
 
 function App() {
   const [gear, setGear] = useState<EquippedSlot[]>(initialGear);
@@ -625,83 +300,6 @@ function App() {
   const selectedPhaseLabel =
     phaseOptions.find((option) => option.value === selectedPhase)?.label ??
     "All TBC";
-  
-  const gearColumns = useMemo(() => {
-    const gearWithIndexes = gear.map((gearSlot, index) => ({
-      gearSlot,
-      index,
-    }));
-
-    return [
-      gearWithIndexes.filter((_, index) => index % 3 === 0),
-      gearWithIndexes.filter((_, index) => index % 3 === 1),
-      gearWithIndexes.filter((_, index) => index % 3 === 2),
-    ];
-  }, [gear]);
-
-  const filteredAvailableItems = useMemo(() => {
-    const search = itemSearchTerm.trim().toLowerCase();
-
-    if (!search) {
-      return availableItems;
-    }
-
-    return availableItems.filter((item) => {
-      const searchableText = [
-        item.name,
-        item.source,
-        item.quality,
-        item.phase.toString(),
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      return searchableText.includes(search);
-    });
-  }, [availableItems, itemSearchTerm]);
-
-  const filteredAvailableEnchants = useMemo(() => {
-    const search = enchantSearchTerm.trim().toLowerCase();
-
-    if (!search) {
-      return availableEnchants;
-    }
-
-    return availableEnchants.filter((enchant) => {
-      const searchableText = [
-        enchant.name,
-        enchant.source,
-        enchant.phase.toString(),
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      return searchableText.includes(search);
-    });
-  }, [availableEnchants, enchantSearchTerm]);
-
-  const filteredAvailableGems = useMemo(() => {
-    const search = gemSearchTerm.trim().toLowerCase();
-
-    if (!search) {
-      return availableGems;
-    }
-
-    return availableGems.filter((gem) => {
-      const searchableText = [
-        gem.name,
-        gem.color,
-        gem.quality,
-        gem.source,
-        gem.phase.toString(),
-        gem.effectDescription ?? "",
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      return searchableText.includes(search);
-    });
-  }, [availableGems, gemSearchTerm]);
 
   async function loadItemsForSlot(slotIndex: number, phase?: number) {
     const gearSlot = gear[slotIndex];
@@ -942,281 +540,22 @@ function App() {
     }
   }
 
-  function renderGearCard(gearSlot: EquippedSlot, index: number) {
-    const socketBonusSummary = gearSlot.item
-      ? formatStatSummary(gearSlot.item.socketBonus)
-      : "";
-
-    const socketBonusActive = gearSlot.item
-      ? isSocketBonusActive(gearSlot.item, gearSlot.gems)
-      : false;
-
-    const metaGems =
-      gearSlot.gems?.filter((gem): gem is TbcGem => gem?.color === "Meta") ?? [];
-
-    return (
-      <article
-        key={gearSlot.slotKey}
-        className={`gear-slot-card ${
-          gearSlot.item ? "gear-slot-card-equipped" : ""
-        }`}
-      >
-        <button
-          className="gear-slot gear-slot-main"
-          onClick={() => openItemPicker(index)}
-        >
-          <span className="gear-slot-topline">
-            <span className="gear-slot-label">{gearSlot.label}</span>
-            {gearSlot.item && <span className="gear-slot-edit">Change</span>}
-          </span>
-
-          <span className="gear-slot-content">
-            <ItemIcon item={gearSlot.item} />
-            <span className="gear-slot-item">
-              {gearSlot.item?.name ?? "Empty"}
-            </span>
-          </span>
-        </button>
-
-        {gearSlot.item && (
-          <div className="gear-card-details">
-            <div className="gear-detail-row">
-              <button
-                className={`gear-detail-chip ${
-                  gearSlot.enchant ? "gear-detail-chip-filled" : ""
-                }`}
-                onClick={() => openEnchantPicker(index)}
-              >
-                <span className="gear-detail-label">Enchant</span>
-                <span className="gear-detail-value">
-                  {gearSlot.enchant?.name ?? "Add"}
-                </span>
-              </button>
-
-              {gearSlot.enchant && (
-                <button
-                  className="compact-remove-button"
-                  onClick={() => removeEnchant(index)}
-                  aria-label={`Remove enchant from ${gearSlot.label}`}
-                >
-                  ×
-                </button>
-              )}
-            </div>
-
-            {gearSlot.item.sockets.length > 0 && (
-              <div className="socket-chip-list">
-                {getSocketDisplayIndexes(gearSlot.item.sockets).map((socketIndex) => {
-                  const socketColor = gearSlot.item!.sockets[socketIndex];
-                  const selectedGem = gearSlot.gems?.[socketIndex] ?? null;
-                  const socketMatches = doesGemMatchSocket(selectedGem, socketColor);
-
-                  return (
-                    <div
-                      className="socket-chip-row"
-                      key={`${gearSlot.slotKey}-${socketIndex}`}
-                    >
-                      <button
-                        className={`socket-chip ${
-                          selectedGem ? "socket-chip-filled" : ""
-                        } ${selectedGem && socketMatches ? "socket-chip-matched" : ""}`}
-                        onClick={() => openGemPicker(index, socketIndex)}
-                      >
-                        <span className="socket-chip-label">
-                          {socketColor}
-                          {selectedGem && socketMatches ? " ✓" : ""}
-                        </span>
-                        <span className="socket-chip-value">
-                          {selectedGem?.name ?? "Add Gem"}
-                        </span>
-                      </button>
-
-                      {selectedGem && (
-                        <button
-                          className="compact-remove-button"
-                          onClick={() => removeGem(index, socketIndex)}
-                          aria-label={`Remove gem from ${gearSlot.label}`}
-                        >
-                          ×
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {(socketBonusSummary || metaGems.length > 0) && (
-              <div className="gear-status-row">
-                {socketBonusSummary && (
-                  <span
-                    className={`gear-status-pill ${
-                      socketBonusActive
-                        ? "gear-status-pill-good"
-                        : "gear-status-pill-muted"
-                    }`}
-                  >
-                    Bonus {socketBonusActive ? "✓" : "—"} {socketBonusSummary}
-                  </span>
-                )}
-
-                {metaGems.map((metaGem) => {
-                  const metaIsActive = isMetaGemActive(metaGem, gear);
-
-                  return (
-                    <span
-                      className={`gear-status-pill ${
-                        metaIsActive
-                          ? "gear-status-pill-good"
-                          : "gear-status-pill-warning"
-                      }`}
-                      key={metaGem.id}
-                      title={metaGem.name}
-                    >
-                      Meta {metaIsActive ? "✓" : "!"}:{" "}
-                      {formatMetaRequirementProgress(metaGem, gear)}
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-      </article>
-    );
-  }
-
-  function getTalentRank(talent: TalentDefinition): number {
-    return talentRanks[talent.key] ?? 0;
-  }
-
-  function setTalentRank(talent: TalentDefinition, nextRank: number) {
-    const clampedRank = Math.max(0, Math.min(nextRank, talent.maxRank));
-
+  function updateTalentRank(talentKey: string, nextRank: number) {
     setTalentRanks((currentRanks) => {
       const nextRanks = { ...currentRanks };
 
-      if (clampedRank === 0) {
-        delete nextRanks[talent.key];
+      if (nextRank <= 0) {
+        delete nextRanks[talentKey];
       } else {
-        nextRanks[talent.key] = clampedRank;
+        nextRanks[talentKey] = nextRank;
       }
 
       return nextRanks;
     });
   }
 
-  function addTalentRank(talent: TalentDefinition) {
-    setTalentRank(talent, getTalentRank(talent) + 1);
-  }
-
-  function removeTalentRank(talent: TalentDefinition) {
-    setTalentRank(talent, getTalentRank(talent) - 1);
-  }
-
   function clearTalents() {
     setTalentRanks({});
-  }
-
-  function getTalentTooltip(talent: TalentDefinition): string {
-    const rank = getTalentRank(talent);
-
-    const currentRankDescription =
-      rank > 0
-        ? talent.rankEffects.find((rankEffect) => rankEffect.rank === rank)
-            ?.description
-        : undefined;
-
-    const nextRankDescription =
-      rank < talent.maxRank
-        ? talent.rankEffects.find((rankEffect) => rankEffect.rank === rank + 1)
-            ?.description
-        : undefined;
-
-    return [
-      talent.name,
-      `Rank ${rank}/${talent.maxRank}`,
-      currentRankDescription
-        ? `Current: ${currentRankDescription}`
-        : talent.description,
-      nextRankDescription ? `Next: ${nextRankDescription}` : undefined,
-      "Left click to add. Right click to remove.",
-    ]
-      .filter(Boolean)
-      .join("\n");
-  }
-
-  function renderTalentTrees() {
-    return (
-      <div className="talent-tab-content">
-        <div className="talent-toolbar">
-          <div>
-            <h2>Talents</h2>
-            <p className="panel-caption">
-              Left click to add a point. Right click to remove a point. Talent
-              effects will be applied in the next calculation pass.
-            </p>
-          </div>
-
-          <button className="secondary-button" onClick={clearTalents}>
-            Clear Talents
-          </button>
-        </div>
-
-        {isLoadingTalents && <p className="muted">Loading talents...</p>}
-
-        {talentError && <p className="error">{talentError}</p>}
-
-        {!isLoadingTalents && !talentError && talentTrees.length === 0 && (
-          <p className="muted">No talents found.</p>
-        )}
-
-        <div className="wow-talent-tree-list">
-          {talentTrees.map((tree) => (
-            <div className="wow-talent-tree" key={tree.treeKey}>
-              <h3>{tree.name}</h3>
-
-              <div className="wow-talent-grid">
-                {tree.talents.map((talent) => {
-                  const rank = getTalentRank(talent);
-
-                  return (
-                    <button
-                      key={talent.key}
-                      className={`wow-talent-icon ${
-                        rank > 0 ? "wow-talent-icon-active" : ""
-                      }`}
-                      style={{
-                        gridRow: talent.row,
-                        gridColumn: talent.column,
-                      }}
-                      title={getTalentTooltip(talent)}
-                      onClick={() => addTalentRank(talent)}
-                      onContextMenu={(event) => {
-                        event.preventDefault();
-                        removeTalentRank(talent);
-                      }}
-                    >
-                      {talent.iconUrl ? (
-                        <img src={talent.iconUrl} alt={talent.name} />
-                      ) : (
-                        <span className="wow-talent-placeholder">
-                          {talent.name.slice(0, 2)}
-                        </span>
-                      )}
-
-                      <span className="wow-talent-rank">
-                        {rank}/{talent.maxRank}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -1236,61 +575,40 @@ function App() {
 
       <main className="main-layout">
         <section className="panel build-panel">
-          <div className="build-tabs">
-            {buildTabOptions.map((tab) => (
-              <button
-                key={tab.id}
-                className={activeBuildTab === tab.id ? "active" : ""}
-                disabled={tab.isDisabled}
-                onClick={() => setActiveBuildTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          <BuildTabs
+            activeTab={activeBuildTab}
+            onTabChange={setActiveBuildTab}
+          />
 
           {activeBuildTab === "gear" && (
-            <>
-              <div className="panel-title-row">
-                <h2>Gear</h2>
-
-                <label className="phase-filter">
-                  <span>Available Through</span>
-                  <select
-                    value={selectedPhase ?? "all"}
-                    onChange={(event) => handlePhaseChange(event.target.value)}
-                  >
-                    {phaseOptions.map((phaseOption) => (
-                      <option
-                        key={phaseOption.label}
-                        value={phaseOption.value ?? "all"}
-                      >
-                        {phaseOption.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <div className="gear-grid">
-                {gearColumns.map((gearColumn, columnIndex) => (
-                  <div className="gear-column" key={`gear-column-${columnIndex}`}>
-                    {gearColumn.map(({ gearSlot, index }) =>
-                      renderGearCard(gearSlot, index)
-                    )}
-                  </div>
-                ))}
-              </div>
-            </>
+            <GearTab
+              gear={gear}
+              selectedPhase={selectedPhase}
+              phaseOptions={phaseOptions}
+              onPhaseChange={handlePhaseChange}
+              onOpenItemPicker={openItemPicker}
+              onOpenEnchantPicker={openEnchantPicker}
+              onRemoveEnchant={removeEnchant}
+              onOpenGemPicker={openGemPicker}
+              onRemoveGem={removeGem}
+            />
           )}
 
-          {activeBuildTab === "talents" && renderTalentTrees()}
+          {activeBuildTab === "talents" && (
+            <TalentsTab
+              talentTrees={talentTrees}
+              talentRanks={talentRanks}
+              isLoadingTalents={isLoadingTalents}
+              talentError={talentError}
+              onTalentRankChange={updateTalentRank}
+              onClearTalents={clearTalents}
+            />
+          )}
 
           {activeBuildTab !== "gear" && activeBuildTab !== "talents" && (
             <div className="placeholder-panel">
               <h2>
-                {buildTabOptions.find((tab) => tab.id === activeBuildTab)
-                  ?.label}
+                {getBuildTabLabel(activeBuildTab)}
               </h2>
               <p className="muted">This section will be added later.</p>
             </div>
@@ -1504,11 +822,11 @@ function App() {
                 </>
               )}
 
-              {renderEffectList(
-                "Active Talent Effects",
-                activeTalentEffects,
-                "No active talent effects."
-              )}
+              <EffectSummaryList
+                title="Active Talent Effects"
+                effects={activeTalentEffects}
+                emptyMessage="No active talent effects."
+              />
 
               {talentWarnings.length > 0 && (
                 <div className="warning-list">
@@ -1636,290 +954,59 @@ function App() {
       </main>
 
       {selectedSlot && (
-        <div className="modal-backdrop" onClick={closeModal}>
-          <div className="modal" onClick={(event) => event.stopPropagation()}>
-            <div className="modal-header">
-              <div>
-                <h2>Select {selectedSlot.label}</h2>
-                <p className="modal-subtitle">
-                  Filter: {selectedPhaseLabel}
-                </p>
-              </div>
-
-              <button onClick={closeModal}>X</button>
-            </div>
-
-            <div className="picker-toolbar">
-              <label className="picker-search">
-                <span>Search Items</span>
-                <input
-                  value={itemSearchTerm}
-                  onChange={(event) => setItemSearchTerm(event.target.value)}
-                  placeholder="Search by name, source, quality..."
-                />
-              </label>
-
-              <label className="phase-filter">
-                <span>Available Through</span>
-                <select
-                  value={selectedPhase ?? "all"}
-                  onChange={(event) => handlePhaseChange(event.target.value)}
-                >
-                  {phaseOptions.map((phaseOption) => (
-                    <option
-                      key={phaseOption.label}
-                      value={phaseOption.value ?? "all"}
-                    >
-                      {phaseOption.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            {isLoadingItems && <p>Loading items...</p>}
-
-            {error && <p className="error">{error}</p>}
-
-            {!isLoadingItems && !error && filteredAvailableItems.length === 0 && (
-              <p className="muted">
-                {availableItems.length === 0
-                  ? "No items found for this slot and phase yet."
-                  : "No items match your search."}
-              </p>
-            )}
-
-            <div className="item-list">
-              {filteredAvailableItems.map((item) => (
-                <button
-                  key={item.id}
-                  className="item-row"
-                  onClick={() => equipItem(item)}
-                >
-                  <div>
-                    <div className="item-main">
-                      <ItemIcon item={item} />
-
-                      <div>
-                        <span className="item-name">{item.name}</span>
-                        <span className="item-details">
-                          {item.quality} • Phase {item.phase} • {item.source}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <span className="item-stats">
-                    {item.stats.stamina > 0 && `+${item.stats.stamina} Stam `}
-                    {item.stats.defenseRating > 0 &&
-                      `+${item.stats.defenseRating} Def `}
-                    {item.stats.dodgeRating > 0 &&
-                      `+${item.stats.dodgeRating} Dodge `}
-                    {item.stats.spellPower > 0 &&
-                      `+${item.stats.spellPower} SP`}
-                    {item.stats.fireResistance > 0 && `+${item.stats.fireResistance} Fire Res `}
-                    {item.stats.frostResistance > 0 && `+${item.stats.frostResistance} Frost Res `}
-                    {item.stats.natureResistance > 0 && `+${item.stats.natureResistance} Nature Res `}
-                    {item.stats.shadowResistance > 0 && `+${item.stats.shadowResistance} Shadow Res `}
-                    {item.stats.arcaneResistance > 0 && `+${item.stats.arcaneResistance} Arcane Res `}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ItemPickerModal
+          selectedSlot={selectedSlot}
+          selectedPhase={selectedPhase}
+          selectedPhaseLabel={selectedPhaseLabel}
+          phaseOptions={phaseOptions}
+          availableItems={availableItems}
+          isLoadingItems={isLoadingItems}
+          error={error}
+          searchTerm={itemSearchTerm}
+          onSearchTermChange={setItemSearchTerm}
+          onPhaseChange={handlePhaseChange}
+          onSelectItem={equipItem}
+          onClose={closeModal}
+        />
       )}
+
       {selectedEnchantSlot && (
-        <div className="modal-backdrop" onClick={closeEnchantModal}>
-          <div className="modal" onClick={(event) => event.stopPropagation()}>
-            <div className="modal-header">
-              <div>
-                <h2>Select Enchant</h2>
-                <p className="modal-subtitle">
-                  {selectedEnchantSlot.label} • Filter: {selectedPhaseLabel}
-                </p>
-              </div>
-
-              <button onClick={closeEnchantModal}>X</button>
-            </div>
-
-            <div className="picker-toolbar">
-              <label className="picker-search">
-                <span>Search Enchants</span>
-                <input
-                  value={enchantSearchTerm}
-                  onChange={(event) => setEnchantSearchTerm(event.target.value)}
-                  placeholder="Search by name or source..."
-                />
-              </label>
-
-              <label className="phase-filter">
-                <span>Available Through</span>
-                <select
-                  value={selectedPhase ?? "all"}
-                  onChange={(event) => handlePhaseChange(event.target.value)}
-                >
-                  {phaseOptions.map((phaseOption) => (
-                    <option key={phaseOption.label} value={phaseOption.value ?? "all"}>
-                      {phaseOption.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            {isLoadingEnchants && <p>Loading enchants...</p>}
-
-            {enchantError && <p className="error">{enchantError}</p>}
-
-            {!isLoadingEnchants &&
-              !enchantError &&
-              filteredAvailableEnchants.length === 0 && (
-                <p className="muted">
-                  {availableEnchants.length === 0
-                    ? "No enchants found for this slot and phase yet."
-                    : "No enchants match your search."}
-                </p>
-              )}
-
-            <div className="item-list">
-              {filteredAvailableEnchants.map((enchant) => (
-                <button
-                  key={enchant.id}
-                  className="item-row"
-                  onClick={() => equipEnchant(enchant)}
-                >
-                  <div>
-                    <span className="item-name">{enchant.name}</span>
-                    <span className="item-details">
-                      Phase {enchant.phase} • {enchant.source}
-                    </span>
-                  </div>
-
-                  <span className="item-stats">
-                    {enchant.stats.stamina > 0 && `+${enchant.stats.stamina} Stam `}
-                    {enchant.stats.defenseRating > 0 &&
-                      `+${enchant.stats.defenseRating} Def `}
-                    {enchant.stats.dodgeRating > 0 &&
-                      `+${enchant.stats.dodgeRating} Dodge `}
-                    {enchant.stats.blockValue > 0 &&
-                      `+${enchant.stats.blockValue} Block Value `}
-                    {enchant.stats.spellPower > 0 &&
-                      `+${enchant.stats.spellPower} SP`}
-                    {enchant.stats.fireResistance > 0 && `+${enchant.stats.fireResistance} Fire Res `}
-                    {enchant.stats.frostResistance > 0 && `+${enchant.stats.frostResistance} Frost Res `}
-                    {enchant.stats.natureResistance > 0 && `+${enchant.stats.natureResistance} Nature Res `}
-                    {enchant.stats.shadowResistance > 0 && `+${enchant.stats.shadowResistance} Shadow Res `}
-                    {enchant.stats.arcaneResistance > 0 && `+${enchant.stats.arcaneResistance} Arcane Res `}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <EnchantPickerModal
+          selectedSlot={selectedEnchantSlot}
+          selectedPhase={selectedPhase}
+          selectedPhaseLabel={selectedPhaseLabel}
+          phaseOptions={phaseOptions}
+          availableEnchants={availableEnchants}
+          isLoadingEnchants={isLoadingEnchants}
+          error={enchantError}
+          searchTerm={enchantSearchTerm}
+          onSearchTermChange={setEnchantSearchTerm}
+          onPhaseChange={handlePhaseChange}
+          onSelectEnchant={equipEnchant}
+          onClose={closeEnchantModal}
+        />
       )}
+
       {selectedGemSlot && selectedGemSocketColor && (
-        <div className="modal-backdrop" onClick={closeGemModal}>
-          <div className="modal" onClick={(event) => event.stopPropagation()}>
-            <div className="modal-header">
-              <div>
-                <h2>Select Gem</h2>
-                <p className="modal-subtitle">
-                  {selectedGemSlot.label} • {selectedGemSocketColor} Socket • Filter:{" "}
-                  {selectedPhaseLabel}
-                </p>
-              </div>
-
-              <button onClick={closeGemModal}>X</button>
-            </div>
-
-            <div className="picker-toolbar">
-              <label className="picker-search">
-                <span>Search Gems</span>
-                <input
-                  value={gemSearchTerm}
-                  onChange={(event) => setGemSearchTerm(event.target.value)}
-                  placeholder="Search by name, color, source..."
-                />
-              </label>
-
-              <label className="phase-filter">
-                <span>Available Through</span>
-                <select
-                  value={selectedPhase ?? "all"}
-                  onChange={(event) => handlePhaseChange(event.target.value)}
-                >
-                  {phaseOptions.map((phaseOption) => (
-                    <option key={phaseOption.label} value={phaseOption.value ?? "all"}>
-                      {phaseOption.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <label className="effect-toggle gem-toggle">
-              <input
-                type="checkbox"
-                checked={includeEpicGems}
-                onChange={(event) => handleIncludeEpicGemsChange(event.target.checked)}
-              />
-              <span>Include Epic Gems</span>
-            </label>
-
-            {isLoadingGems && <p>Loading gems...</p>}
-
-            {gemError && <p className="error">{gemError}</p>}
-
-            {!isLoadingGems && !gemError && filteredAvailableGems.length === 0 && (
-              <p className="muted">
-                {availableGems.length === 0
-                  ? "No gems found for this socket and phase yet."
-                  : "No gems match your search."}
-              </p>
-            )}
-
-            <div className="item-list">
-              {filteredAvailableGems.map((gem) => (
-                <button
-                  key={gem.id}
-                  className="item-row"
-                  onClick={() => equipGem(gem)}
-                >
-                  <div>
-                    <span className="item-name">{gem.name}</span>
-                    <span className="item-details">
-                      {gem.quality} • {gem.color} • Phase {gem.phase} • {gem.source}
-                    </span>
-                    {gem.effectDescription && (
-                      <span className="item-details">{gem.effectDescription}</span>
-                    )}
-                    {gem.metaRequirementDescription && (
-                      <span className="item-details">{gem.metaRequirementDescription}</span>
-                    )}
-                  </div>
-
-                  <span className="item-stats">
-                    {gem.stats.stamina > 0 && `+${gem.stats.stamina} Stam `}
-                    {gem.stats.defenseRating > 0 &&
-                      `+${gem.stats.defenseRating} Def `}
-                    {gem.stats.resilienceRating > 0 &&
-                      `+${gem.stats.resilienceRating} Resil `}
-                    {gem.stats.agility > 0 && `+${gem.stats.agility} Agi `}
-                    {gem.stats.dodgeRating > 0 && `+${gem.stats.dodgeRating} Dodge `}
-                    {gem.stats.spellPower > 0 && `+${gem.stats.spellPower} SP`}
-                    {gem.stats.fireResistance > 0 && `+${gem.stats.fireResistance} Fire Res `}
-                    {gem.stats.frostResistance > 0 && `+${gem.stats.frostResistance} Frost Res `}
-                    {gem.stats.natureResistance > 0 && `+${gem.stats.natureResistance} Nature Res `}
-                    {gem.stats.shadowResistance > 0 && `+${gem.stats.shadowResistance} Shadow Res `}
-                    {gem.stats.arcaneResistance > 0 && `+${gem.stats.arcaneResistance} Arcane Res `}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <GemPickerModal
+          selectedSlot={selectedGemSlot}
+          selectedSocketColor={selectedGemSocketColor}
+          selectedPhase={selectedPhase}
+          selectedPhaseLabel={selectedPhaseLabel}
+          phaseOptions={phaseOptions}
+          availableGems={availableGems}
+          isLoadingGems={isLoadingGems}
+          error={gemError}
+          searchTerm={gemSearchTerm}
+          includeEpicGems={includeEpicGems}
+          onSearchTermChange={setGemSearchTerm}
+          onPhaseChange={handlePhaseChange}
+          onIncludeEpicGemsChange={handleIncludeEpicGemsChange}
+          onSelectGem={equipGem}
+          onClose={closeGemModal}
+        />
       )}
+
     </div>
   );
 }
