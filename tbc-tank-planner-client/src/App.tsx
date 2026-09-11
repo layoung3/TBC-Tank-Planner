@@ -1,9 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  calculateFinalCharacterStats,
-  calculateGearStats,
-  getTalents,
-} from "./api";
+import { useEffect, useState } from "react";
+import { calculateFinalCharacterStats, calculateGearStats } from "./api";
 import { BuildTabs } from "./components/BuildTabs";
 import { ItemPickerModal } from "./components/ItemPickerModal";
 import { EnchantPickerModal } from "./components/EnchantPickerModal";
@@ -14,20 +10,20 @@ import { GearTab } from "./components/GearTab";
 import { TalentsTab } from "./components/TalentsTab";
 import { getBuildTabLabel, phaseOptions } from "./config/plannerOptions";
 import { useGearPlannerState } from "./hooks/useGearPlannerState";
+import { useTalentPlannerState } from "./hooks/useTalentPlannerState";
 import type { BuildTab } from "./models/plannerModels";
 import type {
   CharacterRace,
-  CharacterTalentBuild,
   ActiveItemSetBonus,
   FinalCharacterStatsResponse,
   StatBlock,
-  TalentTreeDefinition,
 } from "./types";
 import { createEmptyStats } from "./utils/statFormatting";
 import "./App.css";
 
 function App() {
   const gearPlanner = useGearPlannerState();
+  const talentPlanner = useTalentPlannerState();
 
   const [gearStatTotals, setGearStatTotals] = useState<StatBlock>(
     createEmptyStats()
@@ -46,20 +42,7 @@ function App() {
   const [isCalculatingFinalStats, setIsCalculatingFinalStats] = useState(false);
   const [finalStatsError, setFinalStatsError] = useState<string | null>(null);
 
-  const [talentTrees, setTalentTrees] = useState<TalentTreeDefinition[]>([]);
-  const [talentRanks, setTalentRanks] = useState<Record<string, number>>({});
-  const [isLoadingTalents, setIsLoadingTalents] = useState(false);
-  const [talentError, setTalentError] = useState<string | null>(null);
-
   const [activeBuildTab, setActiveBuildTab] = useState<BuildTab>("gear");
-
-  const selectedTalentBuild = useMemo<CharacterTalentBuild>(
-    () => ({
-      class: "ProtectionPaladin",
-      talentRanks,
-    }),
-    [talentRanks]
-  );
 
   useEffect(() => {
     async function updateGearStats() {
@@ -89,25 +72,6 @@ function App() {
   }, [gearPlanner.equippedGear]);
 
   useEffect(() => {
-    async function loadTalents() {
-      try {
-        setIsLoadingTalents(true);
-        setTalentError(null);
-
-        const result = await getTalents("ProtectionPaladin");
-
-        setTalentTrees(result);
-      } catch {
-        setTalentError("Unable to load talents.");
-      } finally {
-        setIsLoadingTalents(false);
-      }
-    }
-
-    void loadTalents();
-  }, []);
-
-  useEffect(() => {
     async function updateFinalCharacterStats() {
       try {
         setIsCalculatingFinalStats(true);
@@ -117,7 +81,7 @@ function App() {
           selectedRace,
           gearPlanner.equippedGear,
           includeHolyShield,
-          selectedTalentBuild
+          talentPlanner.selectedTalentBuild
         );
 
         setFinalCharacterStats(result);
@@ -129,25 +93,12 @@ function App() {
     }
 
     void updateFinalCharacterStats();
-  }, [selectedRace, gearPlanner.equippedGear, includeHolyShield, selectedTalentBuild]);
-
-  function updateTalentRank(talentKey: string, nextRank: number) {
-    setTalentRanks((currentRanks) => {
-      const nextRanks = { ...currentRanks };
-
-      if (nextRank <= 0) {
-        delete nextRanks[talentKey];
-      } else {
-        nextRanks[talentKey] = nextRank;
-      }
-
-      return nextRanks;
-    });
-  }
-
-  function clearTalents() {
-    setTalentRanks({});
-  }
+  }, [
+    selectedRace,
+    gearPlanner.equippedGear,
+    includeHolyShield,
+    talentPlanner.selectedTalentBuild,
+  ]);
 
   return (
     <div className="app-shell">
@@ -188,12 +139,12 @@ function App() {
 
           {activeBuildTab === "talents" && (
             <TalentsTab
-              talentTrees={talentTrees}
-              talentRanks={talentRanks}
-              isLoadingTalents={isLoadingTalents}
-              talentError={talentError}
-              onTalentRankChange={updateTalentRank}
-              onClearTalents={clearTalents}
+              talentTrees={talentPlanner.talentTrees}
+              talentRanks={talentPlanner.talentRanks}
+              isLoadingTalents={talentPlanner.isLoadingTalents}
+              talentError={talentPlanner.talentError}
+              onTalentRankChange={talentPlanner.updateTalentRank}
+              onClearTalents={talentPlanner.clearTalents}
             />
           )}
 
